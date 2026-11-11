@@ -1,0 +1,42 @@
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.venv/
+build/
+dist/
+
+# Tooling caches
+.pytest_cache/
+.ruff_cache/
+.mypy_cache/
+.hypothesis/
+.coverage
+.coverage.*
+coverage.xml
+htmlcov/
+junit*.xml
+
+# Environment & secrets
+.env
+.env.*
+!.env.example
+*.pem
+
+# AWS CDK
+cdk.out/
+cdk.context.json
+
+# Docs build
+site/
+
+# Local agent context (machine-specific, never published)
+CLAUDE.local.md
+.claude/settings.local.json
+
+# OS / editors
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/*
+!.vscode/extensions.json
