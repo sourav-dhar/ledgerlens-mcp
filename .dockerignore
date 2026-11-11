@@ -1,0 +1,14 @@
+# Allow-list: the build context contains only what images need.
+*
+!pyproject.toml
+!uv.lock
+!services/
+!packages/
+
+# ...and never these, even inside allowed directories.
+**/tests/
+**/__pycache__/
+**/.venv/
+**/*.py[cod]
+**/.pytest_cache/
+**/.ruff_cache/
