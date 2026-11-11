@@ -1,0 +1,62 @@
+# Local stack: `uv run poe up` (or `docker compose up --build -d`).
+# Each service runs the exact image deployed to Lambda, hardened the same way:
+# read-only root filesystem, no Linux capabilities, no privilege escalation.
+
+x-service: &service
+  build: &build
+    context: .
+    dockerfile: docker/Dockerfile
+  read_only: true
+  tmpfs: [/tmp]
+  cap_drop: [ALL]
+  security_opt: ["no-new-privileges:true"]
+  restart: unless-stopped
+  environment: &env
+    LOG_LEVEL: info
+
+services:
+  db:
+    image: pgvector/pgvector:0.8.7-pg16-trixie@sha256:9cf8b511f0e9a2c209b61430fc139f1ab9c75edbb31fb1751db6617b246a897a
+    environment:
+      POSTGRES_DB: kosha
+      POSTGRES_USER: kosha
+      POSTGRES_PASSWORD: kosha-local-only
+    ports: ["127.0.0.1:${DB_PORT:-55432}:5432"]
+    volumes: [pgdata:/var/lib/postgresql/data]
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U kosha -d kosha"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+  core-api:
+    <<: *service
+    build:
+      <<: *build
+      args: { SERVICE: core-api }
+    image: ledgerlens/core-api:local
+    ports: ["127.0.0.1:${CORE_API_PORT:-8701}:8080"]
+    depends_on:
+      db: { condition: service_healthy }
+
+  screening-sim:
+    <<: *service
+    build:
+      <<: *build
+      args: { SERVICE: screening-sim }
+    image: ledgerlens/screening-sim:local
+    ports: ["127.0.0.1:${SCREENING_PORT:-8702}:8080"]
+
+  mcp-gateway:
+    <<: *service
+    build:
+      <<: *build
+      args: { SERVICE: mcp-gateway }
+    image: ledgerlens/mcp-gateway:local
+    ports: ["127.0.0.1:${GATEWAY_PORT:-8700}:8080"]
+    depends_on:
+      core-api: { condition: service_healthy }
+      screening-sim: { condition: service_healthy }
+
+volumes:
+  pgdata:

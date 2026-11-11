@@ -95,4 +95,4 @@ check = { sequence = ["lint", "typecheck", "test"], help = "Everything CI runs o
 up = { cmd = "docker compose up --build -d", help = "Start the local stack" }
 down = { cmd = "docker compose down", help = "Stop the local stack" }
 docs = { cmd = "mkdocs serve", help = "Preview the docs site" }
-tunnel = { cmd = "ngrok http 8000", help = "Expose the local MCP gateway (dev only)" }
+tunnel = { cmd = "ngrok http 8700", help = "Expose the local MCP gateway (dev only)" }
