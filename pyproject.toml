@@ -76,13 +76,13 @@ filterwarnings = ["error"]
 
 [tool.coverage.run]
 branch = true
-source = ["services"]
+source_pkgs = ["core_api", "mcp_gateway", "screening_sim"]
 omit = ["**/tests/**"]
 
 [tool.coverage.report]
 show_missing = true
 skip_covered = true
-exclude_also = ["if TYPE_CHECKING:", "raise NotImplementedError", "@overload"]
+exclude_also = ["if TYPE_CHECKING:", "raise NotImplementedError", "@overload", "if __name__ == .__main__.:"]
 
 # ---------------------------------------------------------------- tasks
 [tool.poe.tasks]
