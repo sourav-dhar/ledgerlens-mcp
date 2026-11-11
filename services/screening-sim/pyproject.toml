@@ -1,0 +1,16 @@
+[project]
+name = "kosha-screening-sim"
+version = "0.1.0"
+description = "Simulated sanctions and PEP screening vendor with chaos controls"
+requires-python = ">=3.13,<3.14"
+dependencies = ["fastapi>=0.162", "uvicorn[standard]>=0.54", "pydantic-settings>=2.16"]
+
+[project.scripts]
+kosha-serve = "screening_sim.__main__:main"
+
+[build-system]
+requires = ["uv_build>=0.13,<0.14"]
+build-backend = "uv_build"
+
+[tool.uv.build-backend]
+module-name = "screening_sim"
