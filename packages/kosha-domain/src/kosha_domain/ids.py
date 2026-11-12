@@ -6,6 +6,7 @@ entity in any log line. The synthetic data generator passes its own clock and se
 that a given ``--seed`` reproduces every identifier.
 """
 
+import base64
 import random
 import secrets
 from dataclasses import dataclass
@@ -19,7 +20,7 @@ _TIME_LENGTH = 10
 _RANDOM_BITS = 80
 _EPOCH = datetime(1970, 1, 1, tzinfo=UTC)
 _MILLISECOND = timedelta(milliseconds=1)
-_SHIFTS = tuple(range(5 * (_ULID_LENGTH - 1), -1, -5))
+_TO_CROCKFORD = bytes.maketrans(b"ABCDEFGHIJKLMNOPQRSTUVWXYZ234567", _ALPHABET.encode())
 
 
 class IdPrefix(StrEnum):
@@ -107,8 +108,13 @@ def is_valid_id(value: str, prefix: IdPrefix | None = None) -> bool:
 
 
 def _encode(number: int) -> str:
-    """Crockford base32, five bits per character, most significant first."""
-    return "".join(_ALPHABET[(number >> shift) & 31] for shift in _SHIFTS)
+    """Crockford base32, five bits per character, most significant first.
+
+    The standard library's base32 groups bits the same way; shifting the 130-bit value
+    to a byte boundary and translating the alphabet yields the 26 ULID characters.
+    """
+    rfc4648 = base64.b32encode((number << 6).to_bytes(17, "big"))[:_ULID_LENGTH]
+    return rfc4648.translate(_TO_CROCKFORD).decode("ascii")
 
 
 def _decode(text: str) -> int:
