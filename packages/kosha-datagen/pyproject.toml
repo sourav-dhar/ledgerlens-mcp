@@ -1,0 +1,22 @@
+[project]
+name = "kosha-datagen"
+version = "0.2.0"
+description = "Deterministic synthetic data for Kosha Financial: row streams and a COPY loader"
+requires-python = ">=3.13,<3.14"
+dependencies = [
+    "kosha-domain",
+    "psycopg[binary]>=3.3.9",
+]
+
+[project.scripts]
+kosha-seed = "kosha_datagen.__main__:main"
+
+[build-system]
+requires = ["uv_build>=0.13,<0.14"]
+build-backend = "uv_build"
+
+[tool.uv.build-backend]
+module-name = "kosha_datagen"
+
+[tool.uv.sources]
+kosha-domain = { workspace = true }
