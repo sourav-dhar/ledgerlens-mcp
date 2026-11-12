@@ -179,6 +179,74 @@ def audit_record(db: psycopg.Connection, **overrides: Any) -> str:
     return values["audit_id"]
 
 
+def card(db: psycopg.Connection, account_id: str, **overrides: Any) -> str:
+    values: dict[str, Any] = {
+        "card_id": new_id(IdPrefix.CARD),
+        "account_id": account_id,
+        "network": "rupay",
+        "card_type": "debit",
+        "pan_last4": "4417",
+        "token_ref": "card-token-for-tests",
+        "status": "inactive",
+        "expiry_month": 9,
+        "expiry_year": 2030,
+        "atm_limit_paise": 5_000_000,
+        "pos_limit_paise": 20_000_000,
+        "ecom_limit_paise": 10_000_000,
+        "issued_at": NOW,
+    } | overrides
+    insert(db, "core.cards", values)
+    return values["card_id"]
+
+
+def beneficiary(db: psycopg.Connection, customer_id: str, **overrides: Any) -> str:
+    values: dict[str, Any] = {
+        "beneficiary_id": new_id(IdPrefix.BENEFICIARY),
+        "customer_id": customer_id,
+        "nickname": "Amma",
+        "account_number_masked": "XXXXXX4521",
+        "ifsc": "SBIN0001234",
+        "bank_name": "State Bank of India",
+        "added_at": NOW,
+        "cooling_period_ends_at": NOW,
+        "status": "pending_cooling",
+    } | overrides
+    insert(db, "core.beneficiaries", values)
+    return values["beneficiary_id"]
+
+
+def dispute(
+    db: psycopg.Connection, txn: tuple[str, datetime], customer_id: str, **overrides: Any
+) -> str:
+    values: dict[str, Any] = {
+        "dispute_id": new_id(IdPrefix.DISPUTE),
+        "txn_id": txn[0],
+        "txn_initiated_at": txn[1],
+        "customer_id": customer_id,
+        "reason_code": "failed_but_debited",
+        "amount_paise": 25_000,
+        "status": "raised",
+        "tat_due_at": NOW,
+        "created_by": "staff-0042",
+    } | overrides
+    insert(db, "ops.disputes", values)
+    return values["dispute_id"]
+
+
+def review(db: psycopg.Connection, txn: tuple[str, datetime], **overrides: Any) -> str:
+    values: dict[str, Any] = {
+        "review_id": new_id(IdPrefix.TRANSACTION_REVIEW),
+        "txn_id": txn[0],
+        "txn_initiated_at": txn[1],
+        "reason": "Velocity spike on a new device",
+        "priority": "high",
+        "status": "queued",
+        "created_by": "staff-0042",
+    } | overrides
+    insert(db, "ops.transaction_reviews", values)
+    return values["review_id"]
+
+
 def document(db: psycopg.Connection, **overrides: Any) -> str:
     doc_id = overrides.get("doc_id", new_id(IdPrefix.DOCUMENT))
     values: dict[str, Any] = {
