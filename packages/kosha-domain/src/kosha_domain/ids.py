@@ -19,6 +19,7 @@ _TIME_LENGTH = 10
 _RANDOM_BITS = 80
 _EPOCH = datetime(1970, 1, 1, tzinfo=UTC)
 _MILLISECOND = timedelta(milliseconds=1)
+_SHIFTS = tuple(range(5 * (_ULID_LENGTH - 1), -1, -5))
 
 
 class IdPrefix(StrEnum):
@@ -106,11 +107,8 @@ def is_valid_id(value: str, prefix: IdPrefix | None = None) -> bool:
 
 
 def _encode(number: int) -> str:
-    chars = [""] * _ULID_LENGTH
-    for i in reversed(range(_ULID_LENGTH)):
-        number, digit = divmod(number, 32)
-        chars[i] = _ALPHABET[digit]
-    return "".join(chars)
+    """Crockford base32, five bits per character, most significant first."""
+    return "".join(_ALPHABET[(number >> shift) & 31] for shift in _SHIFTS)
 
 
 def _decode(text: str) -> int:
