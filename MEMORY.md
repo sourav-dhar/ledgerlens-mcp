@@ -4,6 +4,10 @@
 
 ## Lessons learned
 
+- **2026-11-12 — Test the code against the design doc.** Parsing the LLD's Mermaid state diagrams in a test and requiring an exact edge match turns the diagram into an executable spec; doc and code can no longer drift silently. Reuse the pattern wherever a diagram encodes rules.
+- **2026-11-12 — Commit chains outlast the tool timeout.** The pre-commit hook runs strict pyright per commit, so three or more commits in one call exceed two minutes. Run commit chains in the background, and do not edit tracked files meanwhile: pre-commit stashes unstaged changes while its hooks run.
+- **2026-11-12 — `Path.write_text` writes CRLF on Windows.** Scripted edits to tracked files must use `write_bytes` (or `newline="\n"`), or the diff shows every line changed.
+- **2026-11-12 — ruff ERA001 reads parentheses as code.** A divider comment such as `# --- RRN (UPI, IMPS, card)` is flagged as commented-out code; write dividers without parenthesised lists.
 - **2026-11-12 — Rate limit after authentication.** Keying a pre-auth limit on an unverified `client_id` claim lets a forged token exhaust a victim's bucket. Authenticate, then rate-limit on the verified identity; edge throttling absorbs anonymous floods.
 - **2026-11-12 — Review rendered diagrams, not their source.** Generated Excalidraw JSON looked fine but rendered with overlapping labels and two factual errors ("signed" images, "bandit"). Render via Kroki, screenshot with headless Edge, read the PNG.
 - **2026-11-12 — Validate Mermaid with Mermaid.** `mkdocs build --strict` does not parse diagrams. Parsing every block with `mermaid.parse` in headless Edge catches syntax errors before readers do.
