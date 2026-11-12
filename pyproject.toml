@@ -17,6 +17,7 @@ dev = [
     "httpx",
     "poethepoet",
     "pre-commit",
+    "testcontainers[postgres]>=4.15.0",
 ]
 docs = [
     "mkdocs-material",
