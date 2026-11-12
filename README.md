@@ -40,7 +40,7 @@ Delivered in phases; each phase lands as one reviewed pull request with green CI
 | Phase | Scope | Status |
 |---|---|---|
 | **P0** | Repository, uv workspace, CI/CD, hardened Docker image, design docs, ADRs | ✅ [v0.2.0](https://github.com/sourav-dhar/ledgerlens-mcp/releases/tag/v0.2.0) |
-| **P1** | Deterministic synthetic data generator, PostgreSQL schema and migrations | 🚧 P1a domain package done · P1b schema next |
+| **P1** | Deterministic synthetic data generator, PostgreSQL schema and migrations | 🚧 P1a domain package · P1b schema and migrations done · P1c generator next |
 | P2 | Core Banking API: customers, accounts, ledger, KYC, AML, disputes | |
 | P3 | MCP gateway: tools, resources, prompts, OAuth, masking, audit | |
 | P4 | Resilience toolkit, chaos mode, screening vendor simulator | |
@@ -57,7 +57,9 @@ Requires [uv](https://docs.astral.sh/uv/) and Docker.
 git clone https://github.com/sourav-dhar/ledgerlens-mcp && cd ledgerlens-mcp
 uv sync --all-packages          # Python 3.13 and every workspace package
 uv run poe check                # lint, strict type check, tests
+uv run poe test-integration     # migrations and constraints against a real Postgres (Docker)
 uv run poe up                   # gateway :8700 · core API :8701 · screening sim :8702
+uv run poe migrate              # bring the local database to the latest schema
 ```
 
 Call a tool over MCP Streamable HTTP:
