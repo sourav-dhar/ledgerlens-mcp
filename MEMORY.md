@@ -6,7 +6,7 @@
 
 - **2026-11-12 — Partitioned tables cannot promise uniqueness on other columns.** Every unique index must include the partition key, so `UNIQUE (utr, initiated_at)` only forbids duplicates at the same instant. Prefer a plain index and say so, over a constraint that looks stronger than it is.
 - **2026-11-12 — A table with pending deferred-trigger events cannot be truncated.** Postgres raises `ObjectInUse` before any `BEFORE TRUNCATE` trigger runs, so a test of a truncate guard must run before inserting rows in that transaction.
-- **2026-11-12 — `importlib` import mode cannot import sibling test modules.** Shared test helpers live in `services/core-api/tests/support/`, added to pytest's `pythonpath` and pyright's `extraPaths`, with a distinctive module name (`db_rows`).
+- **2026-11-12 — `importlib` import mode cannot import sibling test modules.** Shared test helpers live in `tests/support/` (fixtures load as a plugin from the root `conftest.py`), added to pytest's `pythonpath` and pyright's `extraPaths`, with a distinctive module name (`db_rows`).
 - **2026-11-12 — testcontainers moved its Postgres module.** `testcontainers.postgres` emits a `DeprecationWarning` (an error here); import from `testcontainers.community.postgres`.
 - **2026-11-12 — psycopg wants `LiteralString` queries.** Parametrised SQL in tests is annotated `LiteralString`; dynamic identifiers go through `psycopg.sql.Identifier`, never f-strings.
 - **2026-11-12 — gitleaks flags synthetic tokens.** A random-looking value under a key like `token_ref` trips `generic-api-key`; use plainly fake values (`card-token-for-tests`) rather than allow-listing.

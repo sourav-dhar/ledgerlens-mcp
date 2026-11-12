@@ -1,7 +1,9 @@
-"""A real PostgreSQL + pgvector, migrated to head, shared by the integration suite.
+"""A real PostgreSQL + pgvector, migrated to head, shared by every integration suite.
 
-The image is read from ``compose.yaml`` so the tests always run the exact digest the local
-stack runs, and a Dependabot bump of one is a bump of both.
+Registered once as a plugin from the root ``conftest.py``, so the whole test session runs a
+single container however many packages need it. The image is read from ``compose.yaml`` so
+the tests always run the exact digest the local stack runs, and a Dependabot bump of one is
+a bump of both.
 """
 
 import re
@@ -14,7 +16,7 @@ from testcontainers.community.postgres import PostgresContainer
 
 from core_api.migrations import upgrade
 
-_COMPOSE = Path(__file__).parents[4] / "compose.yaml"
+_COMPOSE = Path(__file__).parents[2] / "compose.yaml"
 _IMAGE = re.compile(r"^\s+image:\s+(pgvector/pgvector:\S+)\s*$", re.MULTILINE)
 
 

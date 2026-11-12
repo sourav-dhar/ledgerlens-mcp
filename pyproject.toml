@@ -69,10 +69,10 @@ docstring-code-format = true
 [tool.pyright]
 pythonVersion = "3.13"
 typeCheckingMode = "strict"
-include = ["services", "packages"]
+include = ["services", "packages", "tests"]
 exclude = ["**/.venv", "**/__pycache__"]
 # Shared test helpers, importable because pytest's `pythonpath` adds the same directory.
-extraPaths = ["services/core-api/tests/support"]
+extraPaths = ["tests/support"]
 reportMissingTypeStubs = false
 
 # ---------------------------------------------------------------- pytest
@@ -80,7 +80,7 @@ reportMissingTypeStubs = false
 addopts = ["-ra", "--strict-markers", "--strict-config", "--import-mode=importlib"]
 testpaths = ["services", "packages"]
 # Import mode `importlib` cannot import sibling test modules; shared helpers live here.
-pythonpath = ["services/core-api/tests/support"]
+pythonpath = ["tests/support"]
 markers = [
     "integration: needs Docker (testcontainers / LocalStack)",
     "e2e: runs against a deployed stack",
