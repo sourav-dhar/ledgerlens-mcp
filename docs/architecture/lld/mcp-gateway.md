@@ -43,27 +43,27 @@ Tools are thin: validate input, check scope, call one `clients.*` method, mask, 
 ```mermaid
 flowchart LR
     req["HTTP POST /mcp"] --> shed["1 Load shed<br/>in-flight and budget check"]
-    shed --> rl["2 Rate limit<br/>token bucket per client_id"]
-    rl --> authn["3 Authenticate<br/>JWT signature, iss, aud, exp"]
-    authn --> chaos["4 Chaos<br/>verify HMAC, arm faults"]
-    chaos --> dl["5 Deadline<br/>start budget, trace span"]
-    dl --> authz["6 Authorize<br/>tool scope check"]
-    authz --> tool["7 Tool<br/>validate input, call core-api"]
+    shed --> authn["2 Authenticate<br/>JWT signature, iss, aud, exp"]
+    authn --> rl["3 Rate limit<br/>token bucket per verified client_id"]
+    rl --> authz["4 Authorize<br/>tool scope check"]
+    authz --> chaos["5 Chaos<br/>verify HMAC, arm faults"]
+    chaos --> dl["6 Deadline<br/>start budget, trace span"]
+    dl --> tool["7 Tool<br/>validate input, call core-api"]
     tool --> mask["8 Mask<br/>per role"]
     mask --> audit["9 Audit<br/>always runs, also on error"]
     audit --> resp["Tool result"]
 ```
 
-*Notice: rate limiting runs before JWT verification so unauthenticated floods are cheap to reject; audit runs in a `finally` so denied and failed calls are recorded too.*
+*Notice: the rate limit is keyed on the **verified** `client_id`, so it runs after authentication. Keying on an unverified claim would let a forged token drain a victim's bucket. Unauthenticated floods are absorbed earlier, by API Gateway throttling at the edge, and JWT verification against a cached JWKS is cheap. Audit runs in a `finally`, so denied and failed calls are recorded too.*
 
 | Order | Stage | Rejects with | Notes |
 |---|---|---|---|
 | 1 | Load shed | `503` + `Retry-After` | In-flight > `MAX_IN_FLIGHT` or no usable budget |
-| 2 | Rate limit | `429` + `Retry-After` | Keyed by `client_id` from unverified token claim, falling back to source IP; re-keyed after authn |
-| 3 | Authenticate | `401` + `WWW-Authenticate` with `resource_metadata` | JWKS cached 10 min, refreshed on unknown `kid` |
-| 4 | Chaos | ignored if invalid | Only honoured when `CHAOS_ENABLED` and principal has the operator role |
-| 5 | Deadline | — | Budget = `min(client hint, TOOL_BUDGET[tool])` |
-| 6 | Authorize | tool error `forbidden` (`403` semantics) | Scope from `TOOL_SCOPES`; KB ceiling from role |
+| 2 | Authenticate | `401` + `WWW-Authenticate` with `resource_metadata` | JWKS cached 10 min, refreshed on unknown `kid` |
+| 3 | Rate limit | `429` + `Retry-After` | Token bucket keyed by the verified `client_id` (DynamoDB conditional update) |
+| 4 | Authorize | tool error `forbidden` (`403` semantics) | Scope from `TOOL_SCOPES`; KB ceiling from role |
+| 5 | Chaos | ignored if invalid | Only honoured when `CHAOS_ENABLED` and principal has the operator role |
+| 6 | Deadline | — | Budget = `min(client hint, TOOL_BUDGET[tool])` |
 | 7 | Tool | per taxonomy | Pydantic validation errors map to `invalid_argument` |
 | 8 | Mask | — | Pure function of (payload, principal) |
 | 9 | Audit | — | Write failure is logged and metered, never fails the call |
