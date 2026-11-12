@@ -256,7 +256,7 @@ erDiagram
 
 ## 5. Status lifecycles
 
-All lifecycles are encoded once in `kosha-domain` as transition tables, mirrored into `kosha.allowed_transitions` and enforced by a trigger on each status column. Illegal transitions raise `conflict`.
+All lifecycles are encoded once in `kosha-domain` as transition tables, mirrored into `kosha.allowed_transitions` (a parity test compares them edge for edge) and enforced by a `BEFORE UPDATE` trigger on each status column. An illegal transition raises `check_violation` with the trigger's name (`*_lifecycle`) as the constraint and the domain's own wording, and core-api maps it to `conflict`. Inserts are not checked, because historical rows are loaded in their final status together with their history.
 
 ### Transaction
 
