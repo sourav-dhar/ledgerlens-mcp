@@ -111,7 +111,8 @@ Every money movement becomes one journal entry with postings that sum to zero.
 | Salary credit of ₹85,000 via NEFT | `NEFT_SETTLEMENT`: `-8500000`; A: `+8500000` |
 | ₹10 SMS charges | A: `-1000`; `FEE_INCOME`: `+1000` |
 | Quarterly interest ₹312.40 | `INTEREST_EXPENSE`: `-31240`; A: `+31240` |
-| `credit_delayed` resolved by reversal | Reverse the original entry with an opposite entry; never update or delete postings |
+| `credit_delayed` resolved by reversal | A `reversal` credit Transaction whose entry mirrors the original; postings are never updated or deleted |
+| Balance brought forward (Account older than the ledger) | A: `+4250000`; `OPENING_BALANCES`: `-4250000`, an entry with no Transaction |
 
 ```python
 def post(entry: JournalEntry) -> None:
@@ -126,7 +127,7 @@ Database invariants backing the code:
 |---|---|
 | Postings of an entry sum to zero, with at least two | Deferred constraint triggers on `ledger.postings` and `ledger.journal_entries` (the second catches an entry with no postings) |
 | Postings, entries and status history are immutable | `UPDATE`/`DELETE` never granted to `kosha_app`, and `kosha.forbid_change()` rejects `UPDATE`, `DELETE` and `TRUNCATE` from anyone |
-| Cached balance equals Σ postings | Reconciliation query run by tests and a scheduled job |
+| Cached balance equals Σ postings | `ledger.account_reconciliation` view: any non-zero `difference_paise` is a defect; `poe seed` and a scheduled job check it |
 | Amounts are integers | `BIGINT`; `amount_paise > 0` on `core.transactions` |
 
 ## 6. Pagination and filtering

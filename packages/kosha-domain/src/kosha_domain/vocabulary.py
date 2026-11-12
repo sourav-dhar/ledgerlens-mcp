@@ -134,6 +134,8 @@ class GlAccount(StrEnum):
     GST_PAYABLE = "gst_payable"
     INTEREST_EXPENSE = "interest_expense"
     SUSPENSE = "suspense"
+    OPENING_BALANCES = "opening_balances"
+    """Contra for balances brought forward from before Kosha's ledger went live."""
 
     @property
     def holds_customer_accounts(self) -> bool:
