@@ -4,17 +4,65 @@
   "include-component-in-tag": false,
   "bump-minor-pre-major": true,
   "changelog-sections": [
-    { "type": "feat", "section": "Features" },
-    { "type": "fix", "section": "Bug Fixes" },
-    { "type": "perf", "section": "Performance" },
-    { "type": "refactor", "section": "Refactoring" },
-    { "type": "docs", "section": "Documentation" },
-    { "type": "build", "section": "Build System" },
-    { "type": "ci", "section": "Continuous Integration" },
-    { "type": "test", "section": "Tests", "hidden": true },
-    { "type": "chore", "section": "Miscellaneous", "hidden": true }
+    {
+      "type": "feat",
+      "section": "Features"
+    },
+    {
+      "type": "fix",
+      "section": "Bug Fixes"
+    },
+    {
+      "type": "perf",
+      "section": "Performance"
+    },
+    {
+      "type": "refactor",
+      "section": "Refactoring"
+    },
+    {
+      "type": "docs",
+      "section": "Documentation"
+    },
+    {
+      "type": "build",
+      "section": "Build System"
+    },
+    {
+      "type": "ci",
+      "section": "Continuous Integration"
+    },
+    {
+      "type": "test",
+      "section": "Tests",
+      "hidden": true
+    },
+    {
+      "type": "chore",
+      "section": "Miscellaneous",
+      "hidden": true
+    }
   ],
   "packages": {
-    ".": { "package-name": "ledgerlens-mcp" }
+    ".": {
+      "package-name": "ledgerlens-mcp",
+      "extra-files": [
+        {
+          "type": "toml",
+          "path": "services/core-api/pyproject.toml",
+          "jsonpath": "$.project.version"
+        },
+        {
+          "type": "toml",
+          "path": "services/mcp-gateway/pyproject.toml",
+          "jsonpath": "$.project.version"
+        },
+        {
+          "type": "toml",
+          "path": "services/screening-sim/pyproject.toml",
+          "jsonpath": "$.project.version"
+        }
+      ]
+    }
   }
 }

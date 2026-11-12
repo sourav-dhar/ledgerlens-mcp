@@ -12,14 +12,44 @@ jobs:
     name: Release PR & tag
     runs-on: ubuntu-24.04
     timeout-minutes: 10
-    permissions:
-      contents: write
-      pull-requests: write
+    outputs:
+      pr-branch: ${{ steps.release.outputs.pr && fromJSON(steps.release.outputs.pr).headBranchName }}
     steps:
-      - uses: googleapis/release-please-action@45996ed1f6d02564a971a2fa1b5860e934307cf7 # v5.0.0
+      - id: release
+        uses: googleapis/release-please-action@45996ed1f6d02564a971a2fa1b5860e934307cf7 # v5.0.0
         with:
           # A PAT, not GITHUB_TOKEN: pull requests opened with GITHUB_TOKEN do not trigger
           # workflows, so release PRs would merge without CI having run on them.
           token: ${{ secrets.RELEASE_PLEASE_TOKEN }}
           config-file: release-please-config.json
           manifest-file: .release-please-manifest.json
+
+  sync-lockfile:
+    # release-please bumps versions in pyproject.toml files but knows nothing about uv.lock,
+    # which records workspace versions too. Re-lock on the release branch so `uv sync --locked`
+    # passes on the release PR.
+    name: Sync uv.lock on release PR
+    needs: release-please
+    if: needs.release-please.outputs.pr-branch != ''
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: ${{ needs.release-please.outputs.pr-branch }}
+          token: ${{ secrets.RELEASE_PLEASE_TOKEN }}
+          persist-credentials: true # zizmor: ignore[artipacked] -- this job pushes; no artifacts are uploaded
+      - uses: astral-sh/setup-uv@68559e99cc807c1eb7e9238fd43a15bba460eec2 # v10.3.3
+      - name: Re-lock and push if changed
+        env:
+          BRANCH: ${{ needs.release-please.outputs.pr-branch }}
+        run: |
+          uv lock
+          if git diff --quiet -- uv.lock; then
+            echo "uv.lock already in sync"
+            exit 0
+          fi
+          git config user.name "Sourav Dhar"
+          git config user.email "77230460+sourav-dhar@users.noreply.github.com"
+          git commit -m "build: sync uv.lock with release versions" -- uv.lock
+          git push origin "HEAD:${BRANCH}"
