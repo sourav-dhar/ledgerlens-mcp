@@ -40,6 +40,23 @@ DOMAIN_ENUMS: dict[str, type[StrEnum]] = {
     "core.channel": v.Channel,
     "core.transaction_status": lc.TransactionStatus,
     "ledger.gl_account": v.GlAccount,
+    "kyc.kyc_type": v.KycType,
+    "kyc.kyc_status": lc.KycStatus,
+    "kyc.pan_status": v.PanStatus,
+    "kyc.ovd_type": v.OvdType,
+    "kyc.document_type": v.KycDocumentType,
+    "kyc.document_status": v.KycDocumentStatus,
+    "risk.typology": v.Typology,
+    "risk.severity": v.Severity,
+    "risk.list_source": v.ListSource,
+    "risk.screening_decision": v.ScreeningDecision,
+    "risk.aml_alert_status": lc.AmlAlertStatus,
+    "ops.dispute_reason": v.DisputeReason,
+    "ops.dispute_status": lc.DisputeStatus,
+    "ops.review_priority": v.ReviewPriority,
+    "ops.transaction_review_status": lc.TransactionReviewStatus,
+    "ops.idempotency_status": v.IdempotencyStatus,
+    "ops.audit_outcome": v.AuditOutcome,
 }
 
 _DB_ENUMS = """

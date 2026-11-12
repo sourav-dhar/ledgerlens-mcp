@@ -217,7 +217,7 @@ Operational tables with no foreign keys to business data:
 | Table | Purpose | Key properties |
 |---|---|---|
 | `ops.outbox` | Domain events awaiting publication | `published_at IS NULL` partial index |
-| `ops.audit_log` | One row per tool call | Append-only; `UPDATE`/`DELETE` revoked |
+| `ops.audit_log` | One row per tool call | Append-only: `UPDATE`/`DELETE` revoked from `kosha_app`, and a `kosha.forbid_change()` trigger rejects `UPDATE`, `DELETE` and `TRUNCATE` from anyone, the owner included |
 | `ops.idempotency_keys` | Exactly-once effect for writes | PK `(scope, key)`; `expires_at` |
 
 ## 4. Knowledge base
@@ -535,8 +535,8 @@ async with uow.read_only() as tx:
 
 | Data | Stored as | Who can see it |
 |---|---|---|
-| Aadhaar number | Never stored. `aadhaar_ref_token` (vault reference) + `aadhaar_last4` | Last 4 only, everyone with `kyc:read` |
-| PAN | `pan_token`: KMS envelope-encrypted ciphertext + `pan_last4` | Full value decrypted only for `kyc:pii` |
+| Aadhaar number | Never stored. `aadhaar_ref_token` (vault reference) + `aadhaar_last4`; a CHECK rejects a 12-digit token, so a raw number written by mistake fails | Last 4 only, everyone with `kyc:read` |
+| PAN | `pan_token`: KMS envelope-encrypted ciphertext + `pan_last4`; a CHECK rejects a PAN-shaped token | Full value decrypted only for `kyc:pii` |
 | Mobile, email, DOB | Plain columns, masked at the gateway | Unmasked for `kyc:pii` |
 | Account number | Plain column | Never returned unmasked over MCP |
 | Device ID, IP address | Plain columns | `aml:read` |
