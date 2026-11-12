@@ -49,6 +49,11 @@
       "extra-files": [
         {
           "type": "toml",
+          "path": "packages/kosha-domain/pyproject.toml",
+          "jsonpath": "$.project.version"
+        },
+        {
+          "type": "toml",
           "path": "services/core-api/pyproject.toml",
           "jsonpath": "$.project.version"
         },

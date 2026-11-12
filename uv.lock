@@ -5,6 +5,7 @@ requires-python = "==3.13.*"
 [manifest]
 members = [
     "kosha-core-api",
+    "kosha-domain",
     "kosha-mcp-gateway",
     "kosha-screening-sim",
     "ledgerlens-mcp",
@@ -760,6 +761,11 @@ requires-dist = [
     { name = "pydantic-settings", specifier = ">=2.16" },
     { name = "uvicorn", extras = ["standard"], specifier = ">=0.54" },
 ]
+
+[[package]]
+name = "kosha-domain"
+version = "0.2.0"
+source = { editable = "packages/kosha-domain" }
 
 [[package]]
 name = "kosha-mcp-gateway"
