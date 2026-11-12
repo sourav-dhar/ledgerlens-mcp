@@ -50,6 +50,7 @@ erDiagram
     }
     TRANSACTIONS {
         text txn_id PK
+        timestamptz initiated_at PK
         text account_id FK
         text customer_id FK
         text direction
@@ -57,15 +58,15 @@ erDiagram
         text rail
         text txn_type
         text status
-        text utr UK
+        text utr
         text rrn
         text merchant_id FK
-        timestamptz initiated_at
         smallint risk_score
     }
     TRANSACTION_STATUS_HISTORY {
         text history_id PK
         text txn_id FK
+        timestamptz txn_initiated_at FK
         text from_status
         text to_status
         text reason_code
@@ -75,6 +76,7 @@ erDiagram
     JOURNAL_ENTRIES {
         text entry_id PK
         text txn_id FK
+        timestamptz txn_initiated_at FK
         timestamptz posted_at
     }
     POSTINGS {
@@ -114,6 +116,8 @@ erDiagram
         text state_code
     }
 ```
+
+*Notice: `TRANSACTIONS` is partitioned by `initiated_at`, so its key is `(txn_id, initiated_at)` and every table that references it carries `txn_initiated_at` in a composite foreign key ([ADR 0011](../../adr/0011-composite-foreign-keys-to-partitioned-transactions.md)).*
 
 *Notice: balances on `ACCOUNTS` are a cache; `POSTINGS` is the source of truth, and every transaction that moves money has exactly one balanced journal entry.*
 
@@ -183,6 +187,7 @@ erDiagram
     DISPUTES {
         text dispute_id PK
         text txn_id FK
+        timestamptz txn_initiated_at FK
         text reason_code
         text status
         bigint amount_paise
@@ -192,6 +197,7 @@ erDiagram
     TRANSACTION_REVIEWS {
         text review_id PK
         text txn_id FK
+        timestamptz txn_initiated_at FK
         text status
         text idempotency_key UK
     }
@@ -200,6 +206,7 @@ erDiagram
     }
     TRANSACTIONS {
         text txn_id PK
+        timestamptz initiated_at PK
     }
 ```
 
