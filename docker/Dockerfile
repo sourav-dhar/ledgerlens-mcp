@@ -50,17 +50,21 @@ COPY --from=manifests /src/ ./
 RUN --mount=type=cache,target=/root/.cache/uv \
     uv sync --frozen --no-dev --no-install-workspace --package "kosha-${SERVICE}"
 
-# Layer 3: register the service itself. The editable install writes only a .pth file and
-# metadata pointing at /src/services/<service>/src, so the venv is byte-identical across
-# code changes and the runtime stage's venv layer stays cached. Source is copied separately.
+# Layer 3: register the service and the shared packages it depends on. Editable installs
+# write only a .pth file and metadata pointing at /src/{services,packages}/<name>/src, so the
+# venv is byte-identical across code changes and the runtime stage's venv layer stays cached.
+# Source is copied separately.
+COPY packages/ packages/
 COPY services/${SERVICE}/ services/${SERVICE}/
 # uv_cache.json records source timestamps for uv's own cache invalidation and is unused at
-# runtime; dropping it (and its RECORD line) makes this layer reproducible bit for bit.
+# runtime; dropping it (and its RECORD line) from every workspace member's metadata makes
+# this layer reproducible bit for bit.
 RUN --mount=type=cache,target=/root/.cache/uv \
     UV_COMPILE_BYTECODE=0 uv sync --frozen --no-dev --package "kosha-${SERVICE}" \
- && dist_info="$(echo /app/.venv/lib/python3.13/site-packages/kosha_*.dist-info)" \
- && rm -f "${dist_info}/uv_cache.json" \
- && sed -i '/uv_cache\.json/d' "${dist_info}/RECORD"
+ && for dist_info in /app/.venv/lib/python3.13/site-packages/kosha_*.dist-info; do \
+      rm -f "${dist_info}/uv_cache.json" \
+      && sed -i '/uv_cache\.json/d' "${dist_info}/RECORD" || exit 1; \
+    done
 
 # ---------------------------------------------------------------------------
 # runtime: no uv, no compilers, no source tree, no root.
@@ -88,8 +92,9 @@ COPY --from=lambda-adapter /lambda-adapter /opt/extensions/lambda-adapter
 # Owned by root and only readable by the app user: the running process cannot modify its own code.
 # Large, rarely changing layer: third-party packages (already compiled to bytecode).
 COPY --from=builder /app/.venv /app/.venv
-# Small, frequently changing layer: the service source, precompiled because Lambda's
-# filesystem is read-only and Python could otherwise not cache bytecode at runtime.
+# Small, frequently changing layers: shared packages and the service source, precompiled
+# because Lambda's filesystem is read-only and Python could otherwise not cache bytecode.
+COPY packages/ /src/packages/
 COPY services/${SERVICE}/src/ /src/services/${SERVICE}/src/
 RUN python -m compileall -q /src
 
