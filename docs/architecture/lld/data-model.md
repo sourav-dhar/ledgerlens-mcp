@@ -121,7 +121,7 @@ erDiagram
 
 *Notice: `TRANSACTIONS` is partitioned by `initiated_at`, so its key is `(txn_id, initiated_at)` and every table that references it carries `txn_initiated_at` in a composite foreign key ([ADR 0011](../../adr/0011-composite-foreign-keys-to-partitioned-transactions.md)).*
 
-*Notice: balances on `ACCOUNTS` are a cache; `POSTINGS` is the source of truth, and every transaction that moves money has exactly one balanced journal entry. A posting's `gl_account` is `customer_deposits` (and then `account_id` names the customer Account) or an internal GL account such as `upi_settlement`, `fee_income`, `gst_payable` or `suspense`; a CHECK enforces that `account_id` is set exactly for `customer_deposits`. `available_balance_paise` is a generated column, `ledger_balance_paise − hold_amount_paise`.*
+*Notice: balances on `ACCOUNTS` are a cache; `POSTINGS` is the source of truth, and every transaction that moves money has exactly one balanced journal entry. A posting's `gl_account` is `customer_deposits` (and then `account_id` names the customer Account) or an internal GL account such as `upi_settlement`, `fee_income`, `gst_payable` or `suspense`; a CHECK enforces that `account_id` is set exactly for `customer_deposits`. An Account opened before the ledger went live starts with one entry, with no Transaction, against `opening_balances` (its balance brought forward). `available_balance_paise` is a generated column, `ledger_balance_paise − hold_amount_paise`, and the `ledger.account_reconciliation` view compares each cached balance with its Postings.*
 
 ## 3. KYC, risk and operations
 
