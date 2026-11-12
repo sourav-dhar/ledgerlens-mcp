@@ -124,8 +124,8 @@ Database invariants backing the code:
 
 | Invariant | Enforcement |
 |---|---|
-| Postings of an entry sum to zero | Deferred constraint trigger on `ledger.postings` |
-| Postings are immutable | `UPDATE`/`DELETE` revoked from the application role |
+| Postings of an entry sum to zero, with at least two | Deferred constraint triggers on `ledger.postings` and `ledger.journal_entries` (the second catches an entry with no postings) |
+| Postings, entries and status history are immutable | `UPDATE`/`DELETE` never granted to `kosha_app`, and `kosha.forbid_change()` rejects `UPDATE`, `DELETE` and `TRUNCATE` from anyone |
 | Cached balance equals Σ postings | Reconciliation query run by tests and a scheduled job |
 | Amounts are integers | `BIGINT`; `amount_paise > 0` on `core.transactions` |
 
