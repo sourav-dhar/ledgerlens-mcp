@@ -70,6 +70,10 @@ _Avoid_: Ledger entry, booking
 A single signed amount against one ledger account within a Journal entry; the Postings of an entry always sum to zero.
 _Avoid_: Line item, leg
 
+**GL account**:
+A general-ledger account that Postings land in: `customer_deposits`, whose sub-ledgers are the Customers' Accounts, or an internal account such as a rail's settlement account, fee income, GST payable or suspense.
+_Avoid_: Ledger (the whole book), nostro (a different concept)
+
 ## Payments
 
 **Transaction**:
