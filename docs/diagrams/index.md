@@ -10,7 +10,7 @@ Clients reach the gateway through CloudFront and API Gateway; every Lambda runs 
 
 ## Request lifecycle
 
-One tool call through the gateway pipeline: rate limit, authentication, scope check, deadline, tool, core API, masking, audit.
+One tool call through the gateway pipeline: load shedding, authentication, per-client rate limit, scope check, deadline, tool, core API, masking, audit.
 
 ![Request lifecycle](request-lifecycle.svg)
 

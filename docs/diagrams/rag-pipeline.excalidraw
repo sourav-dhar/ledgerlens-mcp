@@ -2016,12 +2016,7 @@
     "focus": 0,
     "gap": 4
    },
-   "boundElements": [
-    {
-     "id": "a_e_f_t",
-     "type": "text"
-    }
-   ]
+   "boundElements": []
   },
   {
    "seed": 1343,
@@ -2039,20 +2034,20 @@
    "locked": false,
    "link": null,
    "type": "text",
-   "id": "a_e_f_t",
-   "x": 402.7,
-   "y": 619.5,
-   "width": 138.60000000000002,
-   "height": 35.0,
-   "text": "OpenAI down \u2192\nFTS only, degraded",
-   "originalText": "OpenAI down \u2192\nFTS only, degraded",
+   "id": "n_degraded",
+   "x": 160,
+   "y": 712,
+   "width": 385.00000000000006,
+   "height": 17.5,
+   "text": "OpenAI down \u2192 keyword-only results, degraded: true",
+   "originalText": "OpenAI down \u2192 keyword-only results, degraded: true",
    "fontSize": 14,
    "fontFamily": 1,
    "strokeColor": "#c92a2a",
    "backgroundColor": "transparent",
-   "textAlign": "center",
-   "verticalAlign": "middle",
-   "containerId": "a_e_f",
+   "textAlign": "left",
+   "verticalAlign": "top",
+   "containerId": null,
    "autoResize": true,
    "lineHeight": 1.25,
    "boundElements": []
