@@ -1,0 +1,13 @@
+[project]
+name = "kosha-domain"
+version = "0.2.0"
+description = "Kosha Financial domain primitives: money, identifiers, lifecycles, validators"
+requires-python = ">=3.13,<3.14"
+dependencies = []
+
+[build-system]
+requires = ["uv_build>=0.13,<0.14"]
+build-backend = "uv_build"
+
+[tool.uv.build-backend]
+module-name = "kosha_domain"
