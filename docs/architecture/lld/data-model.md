@@ -410,6 +410,64 @@ stateDiagram-v2
 
 *Notice: only escalated alerts can end in an STR filing, which is what the compliance SOPs require.*
 
+### Card
+
+```mermaid
+stateDiagram-v2
+    [*] --> inactive
+    inactive --> active
+    inactive --> expired
+    active --> temp_blocked
+    temp_blocked --> active
+    active --> pin_blocked
+    pin_blocked --> active
+    active --> blocked
+    active --> hotlisted
+    temp_blocked --> hotlisted
+    pin_blocked --> hotlisted
+    active --> expired
+    blocked --> replaced
+    hotlisted --> replaced
+    expired --> replaced
+    replaced --> [*]
+```
+
+*Notice: `temp_blocked` is the customer's own reversible switch; `hotlisted` (lost or stolen) is permanent and ends only in a replacement card.*
+
+### Transaction review
+
+```mermaid
+stateDiagram-v2
+    [*] --> queued
+    queued --> in_review
+    in_review --> on_hold
+    on_hold --> in_review
+    in_review --> cleared
+    in_review --> escalated_to_aml
+    in_review --> blocked
+    cleared --> [*]
+    escalated_to_aml --> [*]
+    blocked --> [*]
+```
+
+*Notice: a review never closes an AML question itself; it either clears the Transaction or hands it to the AML alert queue.*
+
+### Beneficiary
+
+```mermaid
+stateDiagram-v2
+    [*] --> pending_cooling
+    pending_cooling --> active
+    pending_cooling --> deleted
+    active --> disabled
+    disabled --> active
+    active --> deleted
+    disabled --> deleted
+    deleted --> [*]
+```
+
+*Notice: a new Beneficiary starts in its Cooling period; transfers to it stay capped until it becomes `active`.*
+
 ## 6. Indexes and partitioning
 
 | Table | Index / strategy | Serves |
