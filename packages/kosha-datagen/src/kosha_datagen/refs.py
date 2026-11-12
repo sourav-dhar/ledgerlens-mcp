@@ -15,7 +15,6 @@ from kosha_domain.validators import gstin_check_character
 
 IST = timedelta(hours=5, minutes=30)
 _UPPER = string.ascii_uppercase
-_HEX = "0123456789abcdef"
 # Public /16 blocks of large Indian ISPs, so IP addresses geolocate to India.
 _ISP_BLOCKS = ("49.36", "106.51", "117.96", "122.161", "157.32", "182.70", "223.181")
 
@@ -39,11 +38,11 @@ def account_number(customer_index: int, slot: int) -> str:
 
 
 def digits(rng: random.Random, count: int) -> str:
-    return "".join(rng.choice(string.digits) for _ in range(count))
+    return f"{rng.randrange(10**count):0{count}d}"
 
 
 def hex_token(rng: random.Random, count: int) -> str:
-    return "".join(rng.choice(_HEX) for _ in range(count))
+    return f"{rng.getrandbits(4 * count):0{count}x}"
 
 
 def pan(rng: random.Random, holder_type: str, name: str) -> str:
