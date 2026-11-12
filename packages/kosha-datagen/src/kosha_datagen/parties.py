@@ -91,8 +91,20 @@ _INCOME = {
 }
 _BANDS = list(IncomeBand)
 _ADULT_DAYS = 6_576  # 18 years, leap days included
-BAD_ACTOR_SHARE = 0.02
-"""Share of Customers planted with a money-laundering or fraud typology (plan v0.2 §1)."""
+BAD_ACTOR_EVERY = 50
+"""One Customer in fifty is planted with a typology: the 2% of plan v0.2 §1, exactly."""
+_TYPOLOGIES = tuple(Typology)
+
+
+def planted_typology(index: int) -> Typology | None:
+    """The typology Customer ``index`` is planted with, if any.
+
+    Fixed by index rather than drawn, so every typology appears once there are a few hundred
+    Customers. Indices never reach the data: identifiers are ULIDs and CIFs are scrambled.
+    """
+    if index % BAD_ACTOR_EVERY != BAD_ACTOR_EVERY // 3:
+        return None
+    return _TYPOLOGIES[(index // BAD_ACTOR_EVERY) % len(_TYPOLOGIES)]
 
 
 @dataclass(frozen=True, slots=True)
@@ -115,7 +127,8 @@ class Profile:
     pep: bool
     fate: Fate
     fate_at: datetime | None
-    """When the fate took effect: last Customer activity, closure, freeze or hold."""
+    """When the fate took effect: last Customer activity, closure, freeze or hold; for a
+    dormant-reactivation bad actor, when the Account wakes up."""
     typology: Typology | None
     """The planted typology of a bad actor."""
     employer: str | None
@@ -132,7 +145,7 @@ class Profile:
 
 def plan_customer(config: GenerationConfig, index: int, rng: random.Random) -> Profile:
     """Plan Customer number ``index`` from its own random stream."""
-    typology = rng.choice(list(Typology)) if rng.random() < BAD_ACTOR_SHARE else None
+    typology = planted_typology(index)
     persona = _persona_for(rng, typology)
     fate = Fate.ACTIVE if typology else pick(rng, _FATE_WEIGHTS)
     if typology is Typology.MULE_ACCOUNT and rng.random() < 0.5:
@@ -196,10 +209,16 @@ def _timeline(  # noqa: PLR0911 — one return per fate
     """Onboarding instant and fate instant, chosen so that the fate is possible."""
     now, window, history = config.now, config.window_start, config.history_start
     if typology is Typology.MULE_ACCOUNT:
-        # Mules are recruited and used fast: a young Account, emptied within weeks.
-        return between(rng, window, now - 60 * DAY), None
+        # Mules are recruited and used fast: a young Account, emptied within weeks, and
+        # (for a caught one) frozen once the burst is reported.
+        onboarded = between(rng, window, now - 60 * DAY)
+        frozen = onboarded + rng.randint(45, 58) * DAY if fate is Fate.FROZEN else None
+        return onboarded, frozen
     if typology is Typology.DORMANT_REACTIVATION:
-        return between(rng, history, window - 90 * DAY), None
+        # Quiet since before the ledger went live, then suddenly busy: fate_at marks it.
+        return between(rng, history, window - 90 * DAY), between(
+            rng, now - 120 * DAY, now - 30 * DAY
+        )
     match fate:
         case Fate.PROSPECT:
             return between(rng, now - 30 * DAY, now - DAY), None

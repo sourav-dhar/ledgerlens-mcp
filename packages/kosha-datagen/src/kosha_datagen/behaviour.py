@@ -30,6 +30,7 @@ from kosha_domain.vocabulary import (
     Rail,
     Segment,
     TransactionType,
+    Typology,
 )
 
 DAY = timedelta(days=1)
@@ -45,6 +46,11 @@ _ANNUAL_LAKH = {
     IncomeBand.ABOVE_50_LAKH: 70,
 }
 _SEGMENT_FACTOR = {Segment.MASS: 1.0, Segment.AFFLUENT: 1.6, Segment.PREMIUM: 2.5}
+_LIFE_EVENTS = (
+    ("Lakshya Home Finance", "Developers"),
+    ("Udaan Auto Loans", "Motors"),
+    ("Pragati Consumer Finance", "Realty"),
+)
 _FESTIVE = {10: 1.35, 11: 1.3, 12: 1.15, 3: 1.05}  # Navratri-Diwali, year end, Holi
 
 
@@ -60,12 +66,12 @@ class Habits:
 
 
 _HABITS = {
-    Persona.SALARIED: Habits(12, 3.5, 1.0, 2.0, 2.5),
-    Persona.STUDENT: Habits(15, 1.2, 0.8, 2.5, 1.0),
-    Persona.GIG_WORKER: Habits(15, 0.4, 2.0, 1.5, 1.5),
+    Persona.SALARIED: Habits(14, 3.5, 1.0, 2.0, 2.5),
+    Persona.STUDENT: Habits(17, 1.2, 0.8, 2.5, 1.0),
+    Persona.GIG_WORKER: Habits(17, 0.4, 2.0, 1.5, 1.5),
     Persona.SME_OWNER: Habits(8, 2.5, 0.8, 1.5, 3.0),
-    Persona.NRI: Habits(3, 1.5, 0.3, 1.5, 2.0),
-    Persona.SENIOR_CITIZEN: Habits(5, 0.8, 1.5, 1.0, 2.5),
+    Persona.NRI: Habits(4, 1.5, 0.3, 1.5, 2.0),
+    Persona.SENIOR_CITIZEN: Habits(6, 0.8, 1.5, 1.0, 2.5),
 }
 _UPI_SPEND = {
     "supermarket": 26,
@@ -161,6 +167,12 @@ class CustomerBehaviour:
                     intents += self._month(lo, hi, month_start)
         intents += self._deposits(end)
         intents += self._bank_initiated()
+        if (
+            self.profile.fate is Fate.ACTIVE
+            and not self.profile.typology
+            and end - start > 90 * DAY
+        ):
+            intents += self._life_event(start, end)
         if self.profile.fate is Fate.CLOSED and self.profile.fate_at is not None:
             intents.append(self._closure(self.profile.fate_at))
         return intents
@@ -171,6 +183,8 @@ class CustomerBehaviour:
         """When the Customer moves money themselves."""
         p, cfg = self.profile, self.config
         start = max(self.primary.opened_at + DAY, cfg.window_start)
+        if p.typology is Typology.DORMANT_REACTIVATION and p.fate_at is not None:
+            return p.fate_at, cfg.now
         match p.fate:
             case Fate.PROSPECT | Fate.INOPERATIVE:
                 return start, start
@@ -500,6 +514,38 @@ class CustomerBehaviour:
             channel=Channel.API,
             customer_initiated=False,
         )
+
+    def _life_event(self, start: datetime, end: datetime) -> list[Intent]:
+        """A large sum in and straight back out: a home or car down payment.
+
+        Ordinary, and exactly what a rapid-movement rule cannot tell from laundering, so it
+        is where most of that rule's false positives come from.
+        """
+        r = self.rng
+        if r.random() > 0.07:
+            return []
+        source, payee = r.choice(_LIFE_EVENTS)
+        at = between(r, start + 30 * DAY, end - 5 * DAY)
+        amount = r.randint(3, 15) * 10_000_000 * round(_SEGMENT_FACTOR[self.profile.segment])
+        credit = self._credit_neft(at, amount, source, "DISBURSAL", TransactionType.P2P)
+        bank = r.choice(catalog.BANKS)
+        builder = f"{r.choice(catalog.SURNAMES['west'])} {payee}"
+        debit = Intent(
+            at=at + r.randint(3, 40) * timedelta(hours=1),
+            holding=self.primary,
+            direction=Direction.DEBIT,
+            rail=Rail.RTGS,
+            txn_type=TransactionType.P2P,
+            amount_paise=amount * r.randint(90, 100) // 100,
+            counterparty=Counterparty(
+                builder,
+                account_masked=refs.masked(refs.digits(r, 14)),
+                ifsc=refs.ifsc(r, bank.code),
+            ),
+            remark="Down payment",
+            sweep=True,
+        )
+        return [credit, debit]
 
     # --- deposits, interest, charges, closure
 
