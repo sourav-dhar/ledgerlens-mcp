@@ -122,5 +122,62 @@ def posting(
     return values["posting_id"]
 
 
+def kyc_profile(db: psycopg.Connection, customer_id: str, **overrides: Any) -> str:
+    values: dict[str, Any] = {
+        "kyc_id": new_id(IdPrefix.KYC_PROFILE),
+        "customer_id": customer_id,
+        "kyc_type": "full_kyc",
+        "kyc_status": "verified",
+        "pan_token": "kms:v1:AQICAHh0c2VjcmV0LWNpcGhlcnRleHQ",
+        "pan_last4": "234C",
+        "aadhaar_ref_token": "vault:aadhaar:7f3c9e2a",
+        "aadhaar_last4": "4821",
+        "risk_category": "low",
+    } | overrides
+    insert(db, "kyc.kyc_profiles", values)
+    return values["kyc_id"]
+
+
+def aml_rule(db: psycopg.Connection, **overrides: Any) -> str:
+    values: dict[str, Any] = {
+        "rule_id": new_id(IdPrefix.AML_RULE),
+        "name": f"Structuring {new_id(IdPrefix.AML_RULE)[-6:]}",
+        "typology": "structuring",
+        "params": '{"threshold_paise": 1000000000, "window_days": 7}',
+        "severity": "high",
+    } | overrides
+    insert(db, "risk.aml_rules", values)
+    return values["rule_id"]
+
+
+def aml_alert(db: psycopg.Connection, customer_id: str, rule_id: str, **overrides: Any) -> str:
+    values: dict[str, Any] = {
+        "alert_id": new_id(IdPrefix.AML_ALERT),
+        "customer_id": customer_id,
+        "rule_id": rule_id,
+        "typology": "structuring",
+        "score": 82.5,
+        "status": "open",
+        "sla_due_at": NOW,
+    } | overrides
+    insert(db, "risk.aml_alerts", values)
+    return values["alert_id"]
+
+
+def audit_record(db: psycopg.Connection, **overrides: Any) -> str:
+    values: dict[str, Any] = {
+        "audit_id": new_id(IdPrefix.AUDIT_RECORD),
+        "actor_sub": "staff-0042",
+        "client_id": "claude-desktop",
+        "roles": ["support_agent"],
+        "tool_name": "get_customer_profile",
+        "args_hash": "0" * 64,
+        "outcome": "success",
+        "latency_ms": 42,
+    } | overrides
+    insert(db, "ops.audit_log", values)
+    return values["audit_id"]
+
+
 # Crockford base32 → digits, to derive unique numeric identifiers from fresh ULIDs.
 _DIGITS = str.maketrans("ABCDEFGHJKMNPQRSTVWXYZ", "0123456789012345678901")
