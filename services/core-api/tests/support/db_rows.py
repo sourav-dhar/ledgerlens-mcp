@@ -179,5 +179,38 @@ def audit_record(db: psycopg.Connection, **overrides: Any) -> str:
     return values["audit_id"]
 
 
+def document(db: psycopg.Connection, **overrides: Any) -> str:
+    doc_id = overrides.get("doc_id", new_id(IdPrefix.DOCUMENT))
+    values: dict[str, Any] = {
+        "doc_id": doc_id,
+        "doc_code": f"CMP-SOP-{doc_id[-3:].translate(_DIGITS)}",
+        "department": "compliance",
+        "title": "Transaction Monitoring & Alert Handling SOP",
+        "doc_type": "sop",
+        "version": "1.0",
+        "status": "effective",
+        "effective_date": "2026-04-01",
+        "classification": "internal",
+        "source_format": "md",
+        "sha256": "c" * 64,
+    } | overrides
+    insert(db, "kb.documents", values)
+    return values["doc_id"]
+
+
+def chunk(db: psycopg.Connection, doc_id: str, classification: str, **overrides: Any) -> str:
+    values: dict[str, Any] = {
+        "chunk_id": new_id(IdPrefix.CHUNK),
+        "doc_id": doc_id,
+        "classification": classification,
+        "chunk_index": int(new_id(IdPrefix.CHUNK)[-4:].translate(_DIGITS)),
+        "section_path": "4 › 4.2 Enhanced Due Diligence",  # noqa: RUF001 — plan v0.2's separator
+        "content": "Escalate structuring alerts to the MLRO within one business day.",
+        "token_count": 12,
+    } | overrides
+    insert(db, "kb.chunks", values)
+    return values["chunk_id"]
+
+
 # Crockford base32 → digits, to derive unique numeric identifiers from fresh ULIDs.
 _DIGITS = str.maketrans("ABCDEFGHJKMNPQRSTVWXYZ", "0123456789012345678901")

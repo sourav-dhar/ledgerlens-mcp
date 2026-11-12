@@ -501,19 +501,21 @@ Partitions are monthly in UTC. `kosha.create_transaction_partitions(first_month,
 ```sql
 CREATE TYPE kb.classification AS ENUM ('public', 'internal', 'confidential', 'restricted');
 
+-- The application sets the caller's ceiling per transaction; default is the lowest level.
+CREATE FUNCTION kb.caller_ceiling() RETURNS kb.classification
+    LANGUAGE sql STABLE PARALLEL SAFE
+    RETURN coalesce(
+        nullif(current_setting('kosha.kb_ceiling', true), '')::kb.classification,
+        'public'::kb.classification
+    );
+
 ALTER TABLE kb.chunks ENABLE ROW LEVEL SECURITY;
 ALTER TABLE kb.chunks FORCE ROW LEVEL SECURITY;
+CREATE POLICY chunks_within_ceiling ON kb.chunks FOR SELECT TO kosha_app
+    USING (classification <= kb.caller_ceiling());
 
--- The application sets the caller's ceiling per transaction; default is the lowest level.
-CREATE POLICY chunks_within_ceiling ON kb.chunks
-    FOR SELECT
-    TO kosha_app
-    USING (
-        classification <= coalesce(
-            nullif(current_setting('kosha.kb_ceiling', true), '')::kb.classification,
-            'public'::kb.classification
-        )
-    );
+-- kb.documents carries the same policy, so titles and codes of documents above the
+-- ceiling are invisible too.
 ```
 
 ```python
@@ -529,7 +531,7 @@ async with uow.read_only() as tx:
 | `analyst` | `confidential` |
 | `compliance_officer` | `restricted` |
 
-`set_config(..., true)` scopes the value to the transaction, so a pooled connection cannot leak a ceiling to the next request. `FORCE` applies the policy even to the table owner.
+`set_config(..., true)` scopes the value to the transaction, so a pooled connection cannot leak a ceiling to the next request. `FORCE` applies the policy even to the table owner. An unknown ceiling fails the cast to `kb.classification`, so the query fails closed rather than defaulting. `chunks.classification` is pinned to its document's by a composite foreign key with `ON UPDATE CASCADE`, so reclassifying a document re-filters its chunks.
 
 ## 8. PII handling
 
