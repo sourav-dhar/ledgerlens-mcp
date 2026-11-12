@@ -5,14 +5,18 @@ from collections.abc import Iterator
 
 from kosha_datagen import refs
 from kosha_datagen.accounts import Holding, Payee, card_rows, plan_holdings, plan_payees, vpa_rows
+from kosha_datagen.aml import Known, alert_rows, detect, plant, rule_rows
 from kosha_datagen.batch import Batch
 from kosha_datagen.behaviour import CustomerBehaviour, MerchantDirectory
+from kosha_datagen.cases import dispute_rows, review_rows
 from kosha_datagen.config import GenerationConfig
 from kosha_datagen.kyc import kyc_rows, screening_rows
 from kosha_datagen.merchants import generate_merchants
 from kosha_datagen.parties import Profile, address_rows, customer_row, plan_customer
 from kosha_datagen.payments import Ledger, Timeline
+from kosha_datagen.rows import AmlRule
 from kosha_domain.lifecycles import AccountStatus
+from kosha_domain.vocabulary import Typology
 
 CUSTOMERS_PER_BATCH = 200
 """Customers whose rows commit together; small enough to keep deferred-trigger queues short."""
@@ -22,10 +26,12 @@ def generate(config: GenerationConfig) -> Iterator[Batch]:
     """Reference data first, then Customers in batches, each with everything they own."""
     merchants = generate_merchants(config)
     directory = MerchantDirectory(merchants)
-    yield Batch(merchants=merchants)
+    rules = rule_rows(config)
+    yield Batch(merchants=merchants, aml_rules=rules)
+    by_typology = {r.typology: r for r in rules}
     batch = Batch()
     for index in range(config.customers):
-        batch.extend(_customer(config, index, directory))
+        batch.extend(_customer(config, index, directory, by_typology))
         if (index + 1) % CUSTOMERS_PER_BATCH == 0:
             yield batch
             batch = Batch()
@@ -33,7 +39,12 @@ def generate(config: GenerationConfig) -> Iterator[Batch]:
         yield batch
 
 
-def _customer(config: GenerationConfig, index: int, merchants: MerchantDirectory) -> Batch:
+def _customer(
+    config: GenerationConfig,
+    index: int,
+    merchants: MerchantDirectory,
+    rules: dict[Typology, AmlRule],
+) -> Batch:
     rng = config.rng("customer", index)
     profile = plan_customer(config, index, rng)
     customer = customer_row(config, profile, rng)
@@ -44,6 +55,9 @@ def _customer(config: GenerationConfig, index: int, merchants: MerchantDirectory
         config, profile=profile, rng=rng, holdings=holdings, payees=payees, merchants=merchants
     )
     holdings = [h for h in holdings if not h.is_deposit or h.funded]
+    known = Known({h.account_id: h.opened_at for h in holdings}, config.window_start)
+    alerts = alert_rows(config, profile, rng, detect(ledger.booked, known), rules)
+    escalated = {t for a in alerts for t in a.triggering_txn_ids}
     return Batch(
         customers=[customer],
         addresses=address_rows(profile, rng),
@@ -59,6 +73,9 @@ def _customer(config: GenerationConfig, index: int, merchants: MerchantDirectory
         transaction_status_history=ledger.history,
         journal_entries=ledger.entries,
         postings=ledger.postings,
+        aml_alerts=alerts,
+        disputes=dispute_rows(config, rng, ledger.booked),
+        transaction_reviews=review_rows(config, rng, ledger.booked, escalated),
     )
 
 
@@ -75,7 +92,7 @@ def _transact(
     behaviour = CustomerBehaviour(config, profile, rng, holdings, payees, merchants)
     for holding, amount in behaviour.opening_balances():
         timeline.bring_forward(holding, amount)
-    for intent in behaviour.intents():
+    for intent in behaviour.intents() + plant(config, profile, rng, holdings[0]):
         timeline.schedule(intent)
     ledger = timeline.run()
     primary = holdings[0]
