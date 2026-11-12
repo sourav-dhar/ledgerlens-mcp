@@ -73,7 +73,14 @@ LABEL org.opencontainers.image.title="ledgerlens-${SERVICE}" \
       org.opencontainers.image.source="https://github.com/sourav-dhar/ledgerlens-mcp" \
       org.opencontainers.image.licenses="MIT"
 
-RUN groupadd --system --gid 10001 app \
+# Debian publishes security fixes before the official Python image is rebuilt; apply them so
+# the image ships with no fixable HIGH/CRITICAL CVEs (Trivy gates this in CI). The base digest
+# stays pinned; only security patches float, and Dependabot moves the base forward weekly.
+RUN apt-get update \
+ && apt-get upgrade -y --no-install-recommends \
+ && apt-get clean \
+ && rm -rf /var/lib/apt/lists/* /var/cache/apt/archives/* /var/log/apt/* /var/log/dpkg.log \
+ && groupadd --system --gid 10001 app \
  && useradd --system --uid 10001 --gid app --no-create-home --shell /usr/sbin/nologin app
 
 COPY --from=lambda-adapter /lambda-adapter /opt/extensions/lambda-adapter
