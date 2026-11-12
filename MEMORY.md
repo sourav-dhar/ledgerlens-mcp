@@ -4,6 +4,13 @@
 
 ## Lessons learned
 
+- **2026-11-12 — Partitioned tables cannot promise uniqueness on other columns.** Every unique index must include the partition key, so `UNIQUE (utr, initiated_at)` only forbids duplicates at the same instant. Prefer a plain index and say so, over a constraint that looks stronger than it is.
+- **2026-11-12 — A table with pending deferred-trigger events cannot be truncated.** Postgres raises `ObjectInUse` before any `BEFORE TRUNCATE` trigger runs, so a test of a truncate guard must run before inserting rows in that transaction.
+- **2026-11-12 — `importlib` import mode cannot import sibling test modules.** Shared test helpers live in `services/core-api/tests/support/`, added to pytest's `pythonpath` and pyright's `extraPaths`, with a distinctive module name (`db_rows`).
+- **2026-11-12 — testcontainers moved its Postgres module.** `testcontainers.postgres` emits a `DeprecationWarning` (an error here); import from `testcontainers.community.postgres`.
+- **2026-11-12 — psycopg wants `LiteralString` queries.** Parametrised SQL in tests is annotated `LiteralString`; dynamic identifiers go through `psycopg.sql.Identifier`, never f-strings.
+- **2026-11-12 — gitleaks flags synthetic tokens.** A random-looking value under a key like `token_ref` trips `generic-api-key`; use plainly fake values (`card-token-for-tests`) rather than allow-listing.
+- **2026-11-12 — Generate frozen literals, then guard them.** Enum labels and the 127 lifecycle edges were generated once from `kosha-domain` and pasted into the revision; parity tests keep them honest. Hand-typing them invites typos no reviewer will catch.
 - **2026-11-12 — Test the code against the design doc.** Parsing the LLD's Mermaid state diagrams in a test and requiring an exact edge match turns the diagram into an executable spec; doc and code can no longer drift silently. Reuse the pattern wherever a diagram encodes rules.
 - **2026-11-12 — Commit chains outlast the tool timeout.** The pre-commit hook runs strict pyright per commit, so three or more commits in one call exceed two minutes. Run commit chains in the background, and do not edit tracked files meanwhile: pre-commit stashes unstaged changes while its hooks run.
 - **2026-11-12 — `Path.write_text` writes CRLF on Windows.** Scripted edits to tracked files must use `write_bytes` (or `newline="\n"`), or the diff shows every line changed.
@@ -25,6 +32,7 @@
 
 ## Deferred
 
+- **Commit a Mermaid validation script.** Done ad hoc twice now (headless Edge + `mermaid.parse`); a `poe docs-check` task would make it repeatable and catch escaping slips in the throwaway page.
 - **Distroless runtime image** — removes apt/perl/shell CVE classes and shrinks the image; costs a rework of how the venv is copied and shell-less debugging. Candidate ADR.
 - **Image signing and SBOM attestation** (cosign / GitHub attestations) once images are pushed to ECR in P6.
 - **MkDocs Material reaches end of life on 2027-05-05**; its successor Zensical reads `mkdocs.yml`. Revisit in P8.
