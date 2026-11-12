@@ -3,7 +3,14 @@ name = "kosha-core-api"
 version = "0.2.0"
 description = "Kosha Core Banking API: domain logic and persistence"
 requires-python = ">=3.13,<3.14"
-dependencies = ["fastapi>=0.162", "uvicorn[standard]>=0.54", "pydantic-settings>=2.16"]
+dependencies = [
+    "fastapi>=0.162",
+    "uvicorn[standard]>=0.54",
+    "pydantic-settings>=2.16",
+    "kosha-domain",
+    "alembic>=1.20.1",
+    "psycopg[binary]>=3.3.9",
+]
 
 [project.scripts]
 kosha-serve = "core_api.__main__:main"
@@ -14,3 +21,6 @@ build-backend = "uv_build"
 
 [tool.uv.build-backend]
 module-name = "core_api"
+
+[tool.uv.sources]
+kosha-domain = { workspace = true }
