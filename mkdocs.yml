@@ -106,6 +106,7 @@ nav:
       - 0008 Outbox + SQS: adr/0008-transactional-outbox-and-sqs-no-kafka.md
       - 0009 Embeddings with FTS fallback: adr/0009-openai-embeddings-with-fts-degradation.md
       - 0010 CodeDeploy canaries: adr/0010-codedeploy-canary-from-github-actions.md
+      - 0011 Composite FKs to transactions: adr/0011-composite-foreign-keys-to-partitioned-transactions.md
   - Plans:
       - plans/CHANGELOG.md
       - v1.0 Architecture: plans/v1.0-architecture.md
