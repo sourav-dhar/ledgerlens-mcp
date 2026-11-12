@@ -109,6 +109,8 @@ test-all = { cmd = "pytest -m 'not e2e' --cov --cov-report=term --cov-report=xml
 check = { sequence = ["lint", "typecheck", "test"], help = "Everything CI runs on every push" }
 test-integration = { cmd = "pytest -m integration", help = "Integration tests (needs Docker)" }
 migrate = { cmd = "python -m core_api.migrations", help = "Upgrade $DATABASE_URL to head", env = { DATABASE_URL.default = "postgresql://kosha:kosha-local-only@127.0.0.1:55432/kosha" } }
+seed-data = { cmd = "python -m kosha_datagen", help = "Generate, load and reconcile synthetic data into a migrated, empty $DATABASE_URL (--seed, --scale, --as-of)", env = { DATABASE_URL.default = "postgresql://kosha:kosha-local-only@127.0.0.1:55432/kosha" } }
+seed = { sequence = ["migrate", "seed-data"], help = "Migrate, then load the full synthetic dataset and prove the ledger reconciles" }
 up = { cmd = "docker compose up --build -d", help = "Start the local stack" }
 down = { cmd = "docker compose down", help = "Stop the local stack" }
 docs = { cmd = "mkdocs serve", help = "Preview the docs site" }
