@@ -746,7 +746,7 @@ wheels = [
 
 [[package]]
 name = "kosha-core-api"
-version = "0.1.0"
+version = "0.2.0"
 source = { editable = "services/core-api" }
 dependencies = [
     { name = "fastapi" },
@@ -763,7 +763,7 @@ requires-dist = [
 
 [[package]]
 name = "kosha-mcp-gateway"
-version = "0.1.0"
+version = "0.2.0"
 source = { editable = "services/mcp-gateway" }
 dependencies = [
     { name = "fastmcp" },
@@ -780,7 +780,7 @@ requires-dist = [
 
 [[package]]
 name = "kosha-screening-sim"
-version = "0.1.0"
+version = "0.2.0"
 source = { editable = "services/screening-sim" }
 dependencies = [
     { name = "fastapi" },
@@ -797,7 +797,7 @@ requires-dist = [
 
 [[package]]
 name = "ledgerlens-mcp"
-version = "0.1.0"
+version = "0.2.0"
 source = { virtual = "." }
 
 [package.dev-dependencies]

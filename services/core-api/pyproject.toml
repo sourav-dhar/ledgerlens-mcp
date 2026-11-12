@@ -1,6 +1,6 @@
 [project]
 name = "kosha-core-api"
-version = "0.1.0"
+version = "0.2.0"
 description = "Kosha Core Banking API: domain logic and persistence"
 requires-python = ">=3.13,<3.14"
 dependencies = ["fastapi>=0.162", "uvicorn[standard]>=0.54", "pydantic-settings>=2.16"]
