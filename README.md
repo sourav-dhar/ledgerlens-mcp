@@ -40,7 +40,7 @@ Delivered in phases; each phase lands as one reviewed pull request with green CI
 | Phase | Scope | Status |
 |---|---|---|
 | **P0** | Repository, uv workspace, CI/CD, hardened Docker image, design docs, ADRs | ✅ [v0.2.0](https://github.com/sourav-dhar/ledgerlens-mcp/releases/tag/v0.2.0) |
-| **P1** | Deterministic synthetic data generator, PostgreSQL schema and migrations | ⏳ next |
+| **P1** | Deterministic synthetic data generator, PostgreSQL schema and migrations | 🚧 P1a domain package done · P1b schema next |
 | P2 | Core Banking API: customers, accounts, ledger, KYC, AML, disputes | |
 | P3 | MCP gateway: tools, resources, prompts, OAuth, masking, audit | |
 | P4 | Resilience toolkit, chaos mode, screening vendor simulator | |
