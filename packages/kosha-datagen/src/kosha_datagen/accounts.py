@@ -122,14 +122,14 @@ def plan_holdings(config: GenerationConfig, profile: Profile, rng: random.Random
     primary = _holding(profile, rng, 0, _primary_product(profile, rng), opened)
     holdings = [primary]
     if profile.fate not in (Fate.PROSPECT, Fate.CLOSED) and not profile.typology:
-        if rng.random() < 0.05:
+        if rng.random() < 0.12:
             holdings.append(
                 _holding(profile, rng, 1, ProductCode.SAVINGS_REGULAR, opened + 30 * DAY)
             )
-        fd_share = {Persona.SENIOR_CITIZEN: 0.6, Persona.NRI: 0.45}.get(profile.persona, 0.22)
+        fd_share = {Persona.SENIOR_CITIZEN: 0.7, Persona.NRI: 0.55}.get(profile.persona, 0.32)
         if rng.random() < fd_share:
             holdings.append(_deposit(config, profile, rng, 2, ProductCode.FIXED_DEPOSIT))
-        if profile.persona is Persona.SALARIED and rng.random() < 0.18:
+        if rng.random() < (0.3 if profile.persona is Persona.SALARIED else 0.08):
             holdings.append(_deposit(config, profile, rng, 3, ProductCode.RECURRING_DEPOSIT))
     _apply_fate(config, profile, rng, holdings)
     return holdings
@@ -159,7 +159,8 @@ def _holding(
 def _deposit(
     config: GenerationConfig, profile: Profile, rng: random.Random, slot: int, product: ProductCode
 ) -> Holding:
-    earliest = max(profile.onboarded_at + 7 * DAY, config.history_start)
+    # Booked once some income has arrived; older deposits predate the ledger.
+    earliest = max(profile.onboarded_at + 45 * DAY, config.history_start)
     opened = between(rng, earliest, config.now - 20 * DAY)
     holding = _holding(profile, rng, slot, product, opened)
     rich = profile.segment is not Segment.MASS
