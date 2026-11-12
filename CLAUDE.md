@@ -4,6 +4,14 @@ Production-grade MCP server for **Kosha Financial**, a fictional Indian neobank:
 
 Machine- and account-specific context lives in `CLAUDE.local.md` (gitignored). Read it when touching AWS, git identity or the local shell.
 
+## Session protocol
+
+One phase (or one feature) per session, so context stays small.
+
+- **Open:** read `HANDOFF.md` (current state, exact next steps) and `MEMORY.md` (lessons learned). Branch from an up-to-date `main` as `feat/pN-<slug>` or `fix/<slug>`.
+- **Close:** update the README "Build progress" table, rewrite `HANDOFF.md` for the next session, add new lessons to `MEMORY.md`, open a PR, wait for green CI, rebase-merge. Merge the release-please PR when a release is due.
+- `main` is protected by a ruleset: changes reach it only through pull requests with all CI checks green.
+
 ## Where the truth lives
 
 - **Plan and phase you are in** → `docs/plans/v1.0-architecture.md` (§9 lists phases and exit criteria). Data model, status lifecycles and SOP corpus → `docs/plans/v0.2-data-model-and-corpus.md`.
@@ -17,7 +25,7 @@ Machine- and account-specific context lives in `CLAUDE.local.md` (gitignored). R
 1. Build test-first with the `tdd` skill: a failing test through the public interface goes **red**, the smallest change turns it green, then refactor. Tools are tested through FastMCP's in-memory `Client`; HTTP through `httpx.ASGITransport`.
 2. Each tool ships with its failure matrix (plan §8): auth, scopes, masking per role, bad input, not-found, timeouts, breaker open, rate limit, idempotency.
 3. Gates stay green: ruff, pyright **strict at zero errors**, pytest with warnings as errors, 90%+ coverage measured per package.
-4. Commit one logical change at a time as Conventional Commits (`feat(mcp-gateway): …`, scopes are service names or `docker`, `compose`, `plans`, `adr`, `ci`). The body says _why_. Push after each green commit.
+4. Commit one logical change at a time as Conventional Commits (`feat(mcp-gateway): …`, scopes are service names or `docker`, `compose`, `plans`, `adr`, `ci`). The body says _why_. Push the branch after each green commit; `main` changes only by merging the PR.
 5. A hard-to-reverse, surprising, traded-off decision gets an ADR (`domain-modeling` skill). A changed plan gets a new version file plus a row in `docs/plans/CHANGELOG.md`; accepted plans are superseded, not rewritten.
 
 ## Domain invariants
