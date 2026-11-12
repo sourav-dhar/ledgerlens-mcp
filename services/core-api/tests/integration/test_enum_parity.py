@@ -10,6 +10,7 @@ from enum import StrEnum
 import psycopg
 import pytest
 
+from kosha_domain import lifecycles as lc
 from kosha_domain import vocabulary as v
 
 pytestmark = pytest.mark.integration
@@ -17,6 +18,28 @@ pytestmark = pytest.mark.integration
 DOMAIN_ENUMS: dict[str, type[StrEnum]] = {
     "kosha.actor": v.Actor,
     "kosha.risk_category": v.RiskCategory,
+    "core.gender": v.Gender,
+    "core.persona": v.Persona,
+    "core.segment": v.Segment,
+    "core.income_band": v.IncomeBand,
+    "core.residential_status": v.ResidentialStatus,
+    "core.onboarding_channel": v.OnboardingChannel,
+    "core.customer_status": v.CustomerStatus,
+    "core.address_type": v.AddressType,
+    "core.product_code": v.ProductCode,
+    "core.mode_of_operation": v.ModeOfOperation,
+    "core.account_status": lc.AccountStatus,
+    "core.card_network": v.CardNetwork,
+    "core.card_type": v.CardType,
+    "core.card_status": lc.CardStatus,
+    "core.vpa_status": v.VpaStatus,
+    "core.beneficiary_status": lc.BeneficiaryStatus,
+    "core.direction": v.Direction,
+    "core.rail": v.Rail,
+    "core.transaction_type": v.TransactionType,
+    "core.channel": v.Channel,
+    "core.transaction_status": lc.TransactionStatus,
+    "ledger.gl_account": v.GlAccount,
 }
 
 _DB_ENUMS = """

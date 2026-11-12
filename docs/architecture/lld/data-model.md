@@ -28,6 +28,7 @@ erDiagram
     TRANSACTIONS ||--o{ TRANSACTION_STATUS_HISTORY : "moves through"
     TRANSACTIONS ||--o| JOURNAL_ENTRIES : "posted as"
     JOURNAL_ENTRIES ||--|{ POSTINGS : "balanced by"
+    ACCOUNTS ||--o{ POSTINGS : "sub-ledger of customer_deposits"
 
     CUSTOMERS {
         text customer_id PK
@@ -83,6 +84,7 @@ erDiagram
         text posting_id PK
         text entry_id FK
         text gl_account
+        text account_id FK
         bigint amount_paise
     }
     MERCHANTS {
@@ -119,7 +121,7 @@ erDiagram
 
 *Notice: `TRANSACTIONS` is partitioned by `initiated_at`, so its key is `(txn_id, initiated_at)` and every table that references it carries `txn_initiated_at` in a composite foreign key ([ADR 0011](../../adr/0011-composite-foreign-keys-to-partitioned-transactions.md)).*
 
-*Notice: balances on `ACCOUNTS` are a cache; `POSTINGS` is the source of truth, and every transaction that moves money has exactly one balanced journal entry.*
+*Notice: balances on `ACCOUNTS` are a cache; `POSTINGS` is the source of truth, and every transaction that moves money has exactly one balanced journal entry. A posting's `gl_account` is `customer_deposits` (and then `account_id` names the customer Account) or an internal GL account such as `upi_settlement`, `fee_income`, `gst_payable` or `suspense`; a CHECK enforces that `account_id` is set exactly for `customer_deposits`. `available_balance_paise` is a generated column, `ledger_balance_paise − hold_amount_paise`.*
 
 ## 3. KYC, risk and operations
 
@@ -482,16 +484,17 @@ stateDiagram-v2
 | `core.transactions` | `PARTITION BY RANGE (initiated_at)`, monthly; default partition for out-of-range | Pruning for date-bounded queries |
 | `core.transactions` | `(account_id, initiated_at DESC, txn_id DESC)` | `search_transactions` keyset pagination |
 | `core.transactions` | `(customer_id, initiated_at DESC)` | Customer-wide views, AML rules |
-| `core.transactions` | `(merchant_id)`, unique `(utr, initiated_at)` | Merchant drill-down, UTR lookup (partition key must be in unique indexes) |
+| `core.transactions` | partial `(merchant_id)`, partial `(utr)` | Merchant drill-down, UTR lookup. UTR is deliberately not unique: a unique index must include the partition key, which would only forbid duplicates at the same instant, and both legs of an on-us transfer share a UTR |
 | `core.transactions` | GIN `narration gin_trgm_ops` | Text filter |
 | `core.transactions` | partial `(account_id) WHERE status IN ('on_hold','credit_delayed','under_review')` | Ops queues |
 | `core.customers` | GIN trigram on `first_name || ' ' || last_name`; unique `cif_number` | `search_customers` |
+| `ledger.postings` | `(account_id) INCLUDE (amount_paise)` | Index-only reconciliation of cached balances |
 | `risk.aml_alerts` | `(status, sla_due_at)` | Alert queue ordering |
 | `ops.outbox` | partial `(created_at) WHERE published_at IS NULL` | Relay polling |
 | `kb.chunks` | HNSW `embedding vector_cosine_ops (m = 16, ef_construction = 64)` | Vector half of hybrid search |
 | `kb.chunks` | GIN `tsv` | Full-text half of hybrid search |
 
-Partitions are created 3 months ahead by a migration helper; the generator covers 18 months.
+Partitions are monthly in UTC. `kosha.create_transaction_partitions(first_month, last_month)` creates any that are missing; the first migration covers 18 months back and 3 ahead, and a scheduled job keeps 3 months ahead. A month whose rows already sit in the default partition cannot be split out without moving them first, so the job must run before the month arrives.
 
 ## 7. Row-level security for the knowledge base
 
