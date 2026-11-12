@@ -5,6 +5,7 @@ requires-python = "==3.13.*"
 [manifest]
 members = [
     "kosha-core-api",
+    "kosha-datagen",
     "kosha-domain",
     "kosha-mcp-gateway",
     "kosha-screening-sim",
@@ -794,6 +795,21 @@ requires-dist = [
     { name = "psycopg", extras = ["binary"], specifier = ">=3.3.9" },
     { name = "pydantic-settings", specifier = ">=2.16" },
     { name = "uvicorn", extras = ["standard"], specifier = ">=0.54" },
+]
+
+[[package]]
+name = "kosha-datagen"
+version = "0.2.0"
+source = { editable = "packages/kosha-datagen" }
+dependencies = [
+    { name = "kosha-domain" },
+    { name = "psycopg", extra = ["binary"] },
+]
+
+[package.metadata]
+requires-dist = [
+    { name = "kosha-domain", editable = "packages/kosha-domain" },
+    { name = "psycopg", extras = ["binary"], specifier = ">=3.3.9" },
 ]
 
 [[package]]
