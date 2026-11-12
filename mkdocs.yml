@@ -1,0 +1,114 @@
+site_name: LedgerLens MCP
+site_description: Production-grade fintech MCP server on AWS — design, decisions and operations
+site_url: https://sourav-dhar.github.io/ledgerlens-mcp/
+repo_url: https://github.com/sourav-dhar/ledgerlens-mcp
+repo_name: sourav-dhar/ledgerlens-mcp
+edit_uri: edit/main/docs/
+copyright: MIT licensed · Kosha Financial is fictional; all data is synthetic
+
+theme:
+  name: material
+  font:
+    text: Inter
+    code: JetBrains Mono
+  icon:
+    logo: material/bank-outline
+    repo: fontawesome/brands/github
+  palette:
+    - media: "(prefers-color-scheme)"
+      toggle: { icon: material/brightness-auto, name: Switch to light mode }
+    - media: "(prefers-color-scheme: light)"
+      scheme: default
+      primary: indigo
+      accent: teal
+      toggle: { icon: material/weather-night, name: Switch to dark mode }
+    - media: "(prefers-color-scheme: dark)"
+      scheme: slate
+      primary: indigo
+      accent: teal
+      toggle: { icon: material/weather-sunny, name: Follow system preference }
+  features:
+    - navigation.tabs
+    - navigation.sections
+    - navigation.top
+    - navigation.instant
+    - navigation.tracking
+    - navigation.footer
+    - search.suggest
+    - search.highlight
+    - toc.follow
+    - content.code.copy
+    - content.code.annotate
+    - content.tabs.link
+    - content.action.edit
+
+markdown_extensions:
+  - admonition
+  - attr_list
+  - def_list
+  - footnotes
+  - md_in_html
+  - tables
+  - toc:
+      permalink: true
+  - pymdownx.details
+  - pymdownx.highlight:
+      anchor_linenums: true
+  - pymdownx.inlinehilite
+  - pymdownx.keys
+  - pymdownx.snippets:
+      base_path: ["."]
+      check_paths: true
+  - pymdownx.superfences:
+      custom_fences:
+        - name: mermaid
+          class: mermaid
+          format: !!python/name:pymdownx.superfences.fence_code_format
+  - pymdownx.tabbed:
+      alternate_style: true
+  - pymdownx.tasklist:
+      custom_checkbox: true
+  - pymdownx.emoji:
+      emoji_index: !!python/name:material.extensions.emoji.twemoji
+      emoji_generator: !!python/name:material.extensions.emoji.to_svg
+
+validation:
+  omitted_files: warn
+  absolute_links: warn
+  unrecognized_links: warn
+  anchors: warn
+
+nav:
+  - Home: index.md
+  - Architecture:
+      - Overview: architecture/index.md
+      - High-level design: architecture/hld.md
+      - Low-level design:
+          - MCP gateway: architecture/lld/mcp-gateway.md
+          - Core API: architecture/lld/core-api.md
+          - Data model: architecture/lld/data-model.md
+          - Resilience: architecture/lld/resilience.md
+          - RAG pipeline: architecture/lld/rag-pipeline.md
+          - Async messaging: architecture/lld/async-messaging.md
+          - Security: architecture/lld/security.md
+          - Deployment & CI/CD: architecture/lld/deployment-cicd.md
+          - Observability: architecture/lld/observability.md
+      - Diagrams: diagrams/index.md
+  - Decisions:
+      - adr/index.md
+      - 0001 Gateway calls core API over HTTP: adr/0001-mcp-gateway-calls-core-api-over-http.md
+      - 0002 Lambda container images: adr/0002-lambda-container-images-over-fargate.md
+      - 0003 Postgres + pgvector: adr/0003-postgres-pgvector-as-single-system-of-record.md
+      - 0004 JWT validated in-app: adr/0004-jwt-validated-in-app-not-api-gateway.md
+      - 0005 NAT instance: adr/0005-nat-instance-not-nat-gateway.md
+      - 0006 Per-instance breakers: adr/0006-per-instance-breakers-with-shared-override.md
+      - 0007 Transactional idempotency: adr/0007-idempotency-in-the-write-transaction.md
+      - 0008 Outbox + SQS: adr/0008-transactional-outbox-and-sqs-no-kafka.md
+      - 0009 Embeddings with FTS fallback: adr/0009-openai-embeddings-with-fts-degradation.md
+      - 0010 CodeDeploy canaries: adr/0010-codedeploy-canary-from-github-actions.md
+  - Plans:
+      - plans/CHANGELOG.md
+      - v1.0 Architecture: plans/v1.0-architecture.md
+      - v0.2 Data model & corpus: plans/v0.2-data-model-and-corpus.md
+      - v0.1 Discovery: plans/v0.1-discovery.md
+  - Glossary: glossary.md
