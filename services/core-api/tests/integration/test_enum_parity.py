@@ -57,6 +57,11 @@ DOMAIN_ENUMS: dict[str, type[StrEnum]] = {
     "ops.transaction_review_status": lc.TransactionReviewStatus,
     "ops.idempotency_status": v.IdempotencyStatus,
     "ops.audit_outcome": v.AuditOutcome,
+    "kb.department": v.Department,
+    "kb.document_type": v.DocumentType,
+    "kb.document_status": v.DocumentStatus,
+    "kb.classification": v.Classification,
+    "kb.source_format": v.SourceFormat,
 }
 
 _DB_ENUMS = """
