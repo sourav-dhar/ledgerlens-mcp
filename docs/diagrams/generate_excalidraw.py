@@ -49,7 +49,7 @@ class Diagram:
         self.by_id[el["id"]] = el
         return el
 
-    def zone(self, id, x, y, w, h, title, tier, title_size=20):
+    def zone(self, id, x, y, w, h, title, tier, title_size=20, title_dx=16):
         fill, stroke = TIER[tier]
         self._base(
             type="rectangle",
@@ -65,7 +65,7 @@ class Diagram:
             roundness={"type": 3},
             boundElements=[],
         )
-        self.text(f"{id}_t", x + 16, y + 10, title, size=title_size, color=stroke)
+        self.text(f"{id}_t", x + title_dx, y + 10, title, size=title_size, color=stroke)
 
     def box(self, id, x, y, w, h, label, tier, shape="rectangle", size=16, stroke_style="solid"):
         fill, stroke = TIER[tier]
@@ -213,12 +213,13 @@ class Diagram:
 
     def legend(self, x, y, tiers):
         self.text("legend_h", x, y, "Legend", size=20)
-        for i, (tier, name) in enumerate(tiers):
+        cx = x
+        for tier, name in tiers:
             fill, stroke = TIER[tier]
             self._base(
                 type="rectangle",
                 id=f"lg_{tier}",
-                x=x + i * 165,
+                x=cx,
                 y=y + 34,
                 width=28,
                 height=22,
@@ -227,7 +228,8 @@ class Diagram:
                 roundness={"type": 3},
                 boundElements=[],
             )
-            self.text(f"lg_{tier}_t", x + i * 165 + 36, y + 34, name, size=16)
+            self.text(f"lg_{tier}_t", cx + 36, y + 34, name, size=16)
+            cx += 36 + len(name) * 16 * 0.55 + 40
 
     def save(self, path):
         doc = {
@@ -238,7 +240,8 @@ class Diagram:
             "appState": {"viewBackgroundColor": "#ffffff", "gridSize": 20},
             "files": {},
         }
-        Path(path).write_text(json.dumps(doc, indent=1), encoding="utf-8")
+        # LF on every OS so regenerated files are byte-identical across machines.
+        Path(path).write_text(json.dumps(doc, indent=1) + "\n", encoding="utf-8", newline="\n")
 
 
 ALL_TIERS = [
@@ -269,18 +272,19 @@ def system_architecture():
         ]
     ):
         d.box(cid, 45, 160 + i * 85, 210, 65, lbl, "client")
-    d.box("cf", 330, 180, 180, 70, "CloudFront", "edge")
-    d.box("apigw", 570, 180, 190, 70, "API Gateway\nHTTP API", "edge")
-    d.box("cognito", 330, 400, 180, 75, "Cognito\nOAuth 2.1 AS", "security")
+    d.box("cf", 320, 180, 150, 70, "CloudFront", "edge")
+    d.box("apigw", 560, 180, 180, 70, "API Gateway\nHTTP API", "edge")
+    d.box("cognito", 330, 560, 180, 75, "Cognito\nOAuth 2.1 AS", "security")
     for cid in ("c_lg", "c_adk", "c_cd", "c_st"):
         d.arrow(f"a_{cid}", cid, (1, 0.5), "cf", (0, 0.5))
     d.arrow(
         "a_login",
         "z_clients",
-        (1, 0.85),
+        (0.5, 1),
         "cognito",
         (0, 0.5),
         "PKCE login",
+        via=((150, 597),),
         dashed=True,
         color="#c92a2a",
     )
@@ -313,7 +317,7 @@ def system_architecture():
     )
     d.arrow("a_mcp_core", "mcp", (0.5, 1), "core", (0.5, 0), "HTTP + deadline")
     d.arrow("a_core_sim", "core", (0.5, 1), "sim", (0.5, 0), "circuit breaker")
-    d.arrow("a_mcp_ddb", "mcp", (1, 0.5), "ddb", (0, 0.5), "token bucket")
+    d.arrow("a_mcp_ddb", "mcp", (1, 0.5), "ddb", (0, 0.3), "token bucket", via=((1150, 215),))
     d.arrow("a_core_rds", "core", (1, 0.5), "rds", (0, 0.5), "SQL")
     d.arrow("a_core_nat", "core", (1, 0.2), "nat", (0.5, 1), "query embed", dashed=True)
     d.arrow("a_nat_oai", "nat", (1, 0.5), "openai", (0, 0.5), "HTTPS")
@@ -352,8 +356,8 @@ def request_lifecycle():
     d.box("client", 40, 230, 220, 80, "MCP client\nBearer token", "client", shape="ellipse")
     row1 = [
         ("s1", "1 · Load shedding\nin-flight check"),
-        ("s2", "2 · Rate limit\nDynamoDB bucket"),
-        ("s3", "3 · AuthN\nJWT via JWKS"),
+        ("s2", "2 · AuthN\nJWT via JWKS"),
+        ("s3", "3 · Rate limit\nper client · DynamoDB"),
         ("s4", "4 · AuthZ\ntool scope check"),
         ("s5", "5 · Deadline\nbudget set"),
     ]
@@ -365,7 +369,7 @@ def request_lifecycle():
             220,
             80,
             lbl,
-            "compute" if sid not in {"s3", "s4"} else "security",
+            "compute" if sid not in {"s2", "s4"} else "security",
         )
     row2 = [
         ("s6", "6 · Tool handler\nPydantic-validated"),
@@ -386,8 +390,8 @@ def request_lifecycle():
     d.arrow("a_s10_c", "s10", (0, 0.5), "client", (0.5, 1), via=((150, 490),))
     errs = [
         ("e1", "s1", "503 overloaded"),
-        ("e2", "s2", "429 + Retry-After"),
-        ("e3", "s3", "401 + WWW-Authenticate\n(resource metadata)"),
+        ("e2", "s2", "401 + WWW-Authenticate\n(resource metadata)"),
+        ("e3", "s3", "429 + Retry-After"),
         ("e4", "s4", "403 insufficient_scope"),
     ]
     for i, (eid, sid, lbl) in enumerate(errs):
@@ -535,10 +539,16 @@ def rag_pipeline():
         (0.6, 1),
         "q_fts",
         (0, 0.3),
-        "OpenAI down →\nFTS only, degraded",
         dashed=True,
         color="#c92a2a",
+    )
+    d.text(
+        "n_degraded",
+        160,
+        712,
+        "OpenAI down → keyword-only results, degraded: true",
         size=14,
+        color="#c92a2a",
     )
     d.arrow("a_v_r", "q_vec", (1, 0.5), "q_rrf", (0, 0.3))
     d.arrow("a_f_r", "q_fts", (1, 0.5), "q_rrf", (0, 0.7))
@@ -559,14 +569,14 @@ def cicd_pipeline():
     d = Diagram()
     d.title(
         "CI/CD — GitHub Actions to AWS",
-        "Keyless OIDC · signed, scanned arm64 images · canary deploys with automatic rollback",
+        "Keyless OIDC · SHA-pinned actions · scanned arm64 images · canary deploys with rollback",
     )
     d.zone("z_pr", 20, 110, 1360, 190, "Pull request · ci.yml", "client")
     pr = [
         ("p1", "PR opened\nConventional Commit", "client"),
         ("p2", "Lint & types\nruff · pyright", "compute"),
         ("p3", "Tests\nunit · integration\ncontract", "compute"),
-        ("p4", "Security\nbandit · pip-audit\ngitleaks", "security"),
+        ("p4", "Security\nruff-S · pip-audit\ngitleaks", "security"),
         ("p5", "Docker build\n+ Trivy scan", "obs"),
     ]
     for i, (pid, lbl, tier) in enumerate(pr):
@@ -574,27 +584,45 @@ def cicd_pipeline():
     for a, b in itertools.pairwise(pr):
         d.arrow(f"a_{a[0]}_{b[0]}", a[0], (1, 0.5), b[0], (0, 0.5))
 
-    d.zone("z_main", 20, 360, 1700, 400, "main branch · cd.yml · OIDC → AWS", "obs")
-    d.box("m1", 45, 450, 200, 85, "Push to ECR\n(OIDC role)", "obs")
-    d.box("m2", 300, 450, 210, 85, "cdk deploy\n+ cdk-nag", "compute")
-    d.box("m3", 565, 450, 220, 85, "CodeDeploy canary\n10% for 5 min", "obs")
-    d.box("m4", 845, 425, 200, 135, "alarms\nhealthy?", "async", shape="diamond")
-    d.box("m5", 1110, 400, 210, 80, "Promote\n100% traffic", "obs")
-    d.box("m6", 1110, 600, 210, 80, "Automatic\nrollback", "security")
-    d.box("m7", 1390, 400, 270, 80, "E2E + Locust smoke\nagainst live stack", "client")
+    d.zone("z_main", 20, 360, 1700, 440, "main branch · cd.yml · OIDC → AWS", "obs", title_dx=1310)
+    d.box("m1", 45, 500, 200, 85, "Push to ECR\n(OIDC role)", "obs")
+    d.box("m2", 300, 500, 210, 85, "cdk deploy\n+ cdk-nag", "compute")
+    d.box("m3", 565, 500, 220, 85, "CodeDeploy canary\n10% for 5 min", "obs")
+    d.box("m4", 845, 475, 200, 135, "alarms\nhealthy?", "async", shape="diamond")
+    d.box("m5", 1140, 400, 210, 80, "Promote\n100% traffic", "obs")
+    d.box("m6", 1140, 640, 210, 80, "Automatic\nrollback", "security")
+    d.box("m7", 1420, 400, 270, 80, "E2E + Locust smoke\nagainst live stack", "client")
     d.arrow(
         "a_p5_m1", "p5", (0.5, 1), "m1", (0.5, 0), "merge to main", via=((1182, 330), (145, 330))
     )
     d.arrow("a_m1_m2", "m1", (1, 0.5), "m2", (0, 0.5))
     d.arrow("a_m2_m3", "m2", (1, 0.5), "m3", (0, 0.5))
     d.arrow("a_m3_m4", "m3", (1, 0.5), "m4", (0, 0.5))
-    d.arrow("a_m4_m5", "m4", (0.5, 0), "m5", (0, 0.5), "yes", via=((945, 440),), color="#2f9e44")
-    d.arrow("a_m4_m6", "m4", (0.5, 1), "m6", (0, 0.5), "no", via=((945, 640),), color="#c92a2a")
+    d.arrow(
+        "a_m4_m5",
+        "m4",
+        (0.5, 0),
+        "m5",
+        (0, 0.5),
+        "yes",
+        via=((945, 440), (1060, 440)),
+        color="#2f9e44",
+    )
+    d.arrow(
+        "a_m4_m6",
+        "m4",
+        (0.5, 1),
+        "m6",
+        (0, 0.5),
+        "no",
+        via=((945, 680), (1060, 680)),
+        color="#c92a2a",
+    )
     d.arrow("a_m5_m7", "m5", (1, 0.5), "m7", (0, 0.5))
     d.box(
         "note",
         45,
-        600,
+        650,
         740,
         120,
         "Error-rate and p95-latency alarms gate the canary.  A failed\n"
