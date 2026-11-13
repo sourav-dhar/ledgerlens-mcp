@@ -15,3 +15,4 @@ Each record captures a decision that is hard to reverse, would surprise a newcom
 | [0009](0009-openai-embeddings-with-fts-degradation.md) | OpenAI embeddings, with full-text search as the degraded mode |
 | [0010](0010-codedeploy-canary-from-github-actions.md) | Deploy with GitHub Actions and CodeDeploy canaries, not CodePipeline |
 | [0011](0011-composite-foreign-keys-to-partitioned-transactions.md) | Rows that reference a Transaction carry its `initiated_at` in a composite foreign key |
+| [0012](0012-opening-balances-gl-for-balances-brought-forward.md) | Balances older than the ledger are brought forward against an `opening_balances` GL account |
