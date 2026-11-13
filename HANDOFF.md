@@ -43,7 +43,6 @@
 
 ## Open items
 
-- **Owner action:** add "Integration tests" to the *Protect main* ruleset's required checks (carried over from P1b).
 - **Disk:** C: was 99% full and crashed the first full seed. A full dataset needs about 5 GB of Postgres data and WAL; keep 10 GB free, and `docker builder prune` periodically.
 - KB ingestion (P5) needs a write path: a dedicated role with `INSERT`/`UPDATE` policies on `kb.*`, since `FORCE` RLS binds the owner too.
 - A scheduled job must call `kosha.create_transaction_partitions()` to keep 3 months ahead (P6). The same job can run `kosha_datagen.reconcile` against production-shaped data.
