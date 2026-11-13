@@ -31,7 +31,7 @@
 ## Next session: finish P1, then P2
 
 1. Start Docker Desktop, run `docker compose down -v && docker compose up -d db`, then run `uv run poe seed` and leave it to finish (keep 10 GB free on C:). To speed it up, consider raising `shared_buffers` and `max_wal_size` for the compose `db` service: the load waits on data-file I/O.
-2. Record the printed row counts here and in the README progress row, merge the P1c PR once CI is green, then merge the release-please PR for **v0.3.0**.
+2. Record the printed row counts here and in the README progress row (P1c is already merged, PR #6), then merge the release-please PR for **v0.3.0** (#3).
 
 ### P2: Core Banking API, test-first
 
@@ -52,4 +52,4 @@
 
 ## Suggested opening prompt for the next session
 
-> Continue LedgerLens: verify the full seed and merge P1c per HANDOFF.md, then start P2.
+> Continue LedgerLens: verify the full seed per HANDOFF.md, then start P2.
