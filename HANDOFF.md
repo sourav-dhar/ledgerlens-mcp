@@ -2,56 +2,54 @@
 
 > Read at the start of every session; rewrite at the end of every session. Durable lessons go to [MEMORY.md](MEMORY.md), standing rules to [CLAUDE.md](CLAUDE.md).
 
-**Last updated:** 2026-11-12 · **Current release:** v0.2.0 · **Phase in progress:** P1 (P1a, P1b done) · **Next:** P1c
+**Last updated:** 2026-11-13 · **Current release:** v0.2.0 · **Phase in progress:** P1 (P1c in review) · **Next:** verify the full seed, merge, release v0.3.0, then P2
 
 ## Where things stand
 
-- P1 lands as three PRs: **P1a** `kosha-domain` (done), **P1b** schema and migrations (done), **P1c** generator and `poe seed`. Exit criteria (plan §9): `uv run poe seed` loads the full dataset; the ledger reconciles.
-- `core-api` owns six Alembic revisions under `services/core-api/src/core_api/migrations/versions/`, raw SQL with enum labels frozen as literals:
+- **P1c is built and in review** (PR from `feat/p1-generator`): `kosha-datagen` and `uv run poe seed`. The exit criterion is **not yet verified at full volume**; see below.
+- `packages/kosha-datagen` (design: [LLD](docs/architecture/lld/datagen.md)) is a pure row-stream generator (`generate(config)`, seam 3) plus a `COPY` loader and `reconcile` (seam 4). A dataset is fixed by `(seed, as_of, scale)`; a smaller scale is an exact prefix of a larger one.
+- Revision **0007** adds the `opening_balances` GL account ([ADR 0012](docs/adr/0012-opening-balances-gl-for-balances-brought-forward.md)) and the `ledger.account_reconciliation` view.
+- Shared test support moved to `tests/support/`: `pg_container.py` (one Postgres container per session, loaded as a plugin from the root `conftest.py`) and `db_rows.py`.
 
-| Rev | Adds |
-|---|---|
-| 0001 | `vector`, `pg_trgm`; schemas `kosha core ledger kyc risk ops kb`; `kosha_app` role (NOLOGIN); `kosha.is_id()` |
-| 0002 | core + ledger tables; `core.transactions` monthly partitions (18 back, 3 ahead, default) via `kosha.create_transaction_partitions()` |
-| 0003 | KYC, risk, ops tables; `kosha.forbid_change()`; append-only audit log |
-| 0004 | `kb.documents`, `kb.chunks`; RLS ceiling on **both** via `kb.caller_ceiling()` |
-| 0005 | `kosha.allowed_transitions` (127 edges) + `*_lifecycle` triggers on 8 status columns |
-| 0006 | deferred zero-sum triggers on postings **and** journal entries; ledger and history append-only |
+### Verification status
 
-- 180 integration tests (`uv run poe test-integration`) run against the pgvector image read from `compose.yaml`. Parity tests fail if a DB enum or transition drifts from `kosha-domain`. Shared row helpers: `services/core-api/tests/support/db_rows.py` (on pytest's `pythonpath`).
-- `uv run poe migrate` upgrades `$DATABASE_URL` (default: the compose DB on 55432). Verified against the compose stack; it is idempotent.
-- CI has a new **Integration tests** job. ADR 0011 records composite FKs to partitioned transactions.
+- Verified: 60 datagen tests. The row-stream tests check formats, lifecycles, balanced entries, cached balance = Σ Postings, distributions and every typology at 150–375 Customers. The integration tests load into a migrated pgvector database, cover partitions and the CLI end to end, and prove that `reconcile` finds orphans and unbalanced entries.
+- Benchmarked: 200 Customers load in 32 s with triggers off, against 145 s or more with them on.
+- **Not verified: the full 5,000-Customer `poe seed`.** The first attempt crashed Postgres when C: filled up (99% full). The second reached about 1,600 Customers before the machine or Docker stopped. It was I/O-bound on Docker Desktop's virtual disk and slowing (about 40 Customers a minute), so expect 1.5–2 hours here.
 
-## Decisions taken this session (beyond the LLD, all reflected in the LLD now)
+## Decisions taken this session
 
 | Topic | Decision |
 |---|---|
-| Postings | `gl_account` enum + `account_id` set **only** for `customer_deposits` (CHECK). Internal GLs: per-rail settlement, `fee_income`, `gst_payable`, `interest_expense`, `suspense`. |
-| UTR | Plain partial index, **not unique**: a unique index must include `initiated_at`, and on-us transfers share a UTR. |
-| Balances | `available_balance_paise` is a generated column (ledger − hold). |
-| Composite FKs | Also pin transaction→account owner, KYC document→profile customer, alert→rule typology, chunk→document classification (`ON UPDATE CASCADE`). |
-| Lifecycle trigger | UPDATE only; inserts take any status. Raises `check_violation`, constraint `*_lifecycle`, message identical to `IllegalTransitionError`. |
-| Vocabulary | Actor `staff` (not `ops_user`), dispute reason `unauthorised`, product codes `fixed_deposit`/`recurring_deposit`. |
+| Opening balances | Accounts older than the window start with a no-Transaction entry against `opening_balances` (ADR 0012), chosen over `suspense` and over window-only Accounts |
+| Money that comes back | A reversal or refund is its own credit Transaction: a journal entry belongs to exactly one Transaction (`UNIQUE (txn_id, txn_initiated_at)`) |
+| Outcomes | Explicit scenario paths per Rail (`outcomes.py`), cut at the as-of date, so open cases exist only on recent Transactions |
+| Bad actors | Index ≡ 16 (mod 50), typologies in rotation: exactly 2%, every typology present from 350 Customers |
+| AML alerts | Detected by seven rules over posted Transactions (thresholds in `risk.aml_rules.params`), never planted; loan-funded down payments supply most false positives |
+| Bulk load | `COPY` with `session_replication_role = replica` (11× faster); `reconcile` proves every foreign key, balanced entries, cached balances and a zero-sum ledger set-based. Roles without the `SET` privilege load with triggers on |
 
-## Next session: P1c — generator and `poe seed`
+## Next session: finish P1, then P2
 
-1. Branch `feat/p1-generator` from an up-to-date `main`.
-2. Read first: plan v0.2 §0 (realism rules), §1a (status distributions), §2 (volumes); data-model LLD §§2-3, 8; core-api LLD §5 (posting table). Read the six revisions: they are the contract the generator writes to.
-3. Create `packages/kosha-datagen` (plan v1.0 §7). Pure row streams first (seam 3), then a loader that `COPY`s them (seam 4). Curated Indian name/city lists, not Faker; full volume by default, `--scale` for tests.
-4. **Load as the table owner, not `kosha_app`:** `kosha_app` cannot write `kb.*` (RLS has no write policy) and P1c does not need to.
-5. **Commit in batches.** Deferred balance triggers queue one event per posting until commit; one 3M-posting transaction risks the 3 GB Docker cap. Write each transaction's status history alongside it (inserts skip lifecycle checks; history is the generator's job).
-6. **Partitions:** anchor the dataset so `initiated_at` falls inside the migrated window, or call `kosha.create_transaction_partitions()` for the seed's range **before** loading; rows already in the default partition block creating that month later.
-7. Add a reconciliation query (cached `ledger_balance_paise` = Σ postings per account, via `postings_account_idx`) and make it the seed's exit check; consider shipping it as a view in revision 0007.
-8. `poe seed` = migrate + generate + load + reconcile.
+1. Start Docker Desktop, run `docker compose down -v && docker compose up -d db`, then run `uv run poe seed` and leave it to finish (keep 10 GB free on C:). To speed it up, consider raising `shared_buffers` and `max_wal_size` for the compose `db` service: the load waits on data-file I/O.
+2. Record the printed row counts here and in the README progress row, merge the P1c PR once CI is green, then merge the release-please PR for **v0.3.0**.
+
+### P2: Core Banking API, test-first
+
+1. Branch `feat/p2-<slug>` from an up-to-date `main`.
+2. Read first: core-api LLD (whole), plan v1.0 §§3–5 and §8 (failure matrix), ADRs 0001, 0007, 0008, 0011.
+3. Build the `db/` layer (pool, unit of work, RLS context) and repositories against the seeded schema; `poe seed --scale 0.02` gives a realistic local database in under a minute.
+4. Map database errors: `check_violation` with constraint `*_lifecycle` → 409 `conflict`; `restrict_violation` (append-only) → 409.
+5. Routes per the LLD, each with its failure tests; contract-snapshot the OpenAPI document (`syrupy`).
 
 ## Open items
 
-- **Owner action:** after this PR's first CI run, add "Integration tests" to the *Protect main* ruleset's required checks.
+- **Owner action:** add "Integration tests" to the *Protect main* ruleset's required checks (carried over from P1b).
+- **Disk:** C: was 99% full and crashed the first full seed. A full dataset needs about 5 GB of Postgres data and WAL; keep 10 GB free, and `docker builder prune` periodically.
 - KB ingestion (P5) needs a write path: a dedicated role with `INSERT`/`UPDATE` policies on `kb.*`, since `FORCE` RLS binds the owner too.
-- core-api's error mapping (P2) should turn `check_violation` with constraint `*_lifecycle` into 409 `conflict`, and `restrict_violation` (append-only) into 409 as well.
-- A scheduled job must call `kosha.create_transaction_partitions()` to keep 3 months ahead (P6).
-- Docker on this machine is capped at 3 GB (`~/.wslconfig`); run one testcontainers Postgres at a time. The first testcontainers run on a machine pulls Ryuk and pgvector and may time out once.
+- A scheduled job must call `kosha.create_transaction_partitions()` to keep 3 months ahead (P6). The same job can run `kosha_datagen.reconcile` against production-shaped data.
+- Seeding RDS (P6): the master user is not a superuser; grant `SET` on `session_replication_role` or accept a slower trigger-on load.
+- Volumes are close to plan v0.2 §2 but not equal (cards ≈ 0.95 per Customer against ≈ 1.2 planned); the plan marks them "proposed".
 
 ## Suggested opening prompt for the next session
 
-> Continue LedgerLens: start P1c per HANDOFF.md.
+> Continue LedgerLens: verify the full seed and merge P1c per HANDOFF.md, then start P2.

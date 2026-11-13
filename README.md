@@ -40,7 +40,7 @@ Delivered in phases; each phase lands as one reviewed pull request with green CI
 | Phase | Scope | Status |
 |---|---|---|
 | **P0** | Repository, uv workspace, CI/CD, hardened Docker image, design docs, ADRs | ✅ [v0.2.0](https://github.com/sourav-dhar/ledgerlens-mcp/releases/tag/v0.2.0) |
-| **P1** | Deterministic synthetic data generator, PostgreSQL schema and migrations | 🚧 P1a domain package · P1b schema and migrations done · P1c generator next |
+| **P1** | Deterministic synthetic data generator, PostgreSQL schema and migrations | 🚧 P1a domain · P1b schema · P1c generator, loader and `poe seed` in review; full-volume run pending |
 | P2 | Core Banking API: customers, accounts, ledger, KYC, AML, disputes | |
 | P3 | MCP gateway: tools, resources, prompts, OAuth, masking, audit | |
 | P4 | Resilience toolkit, chaos mode, screening vendor simulator | |
@@ -60,6 +60,7 @@ uv run poe check                # lint, strict type check, tests
 uv run poe test-integration     # migrations and constraints against a real Postgres (Docker)
 uv run poe up                   # gateway :8700 · core API :8701 · screening sim :8702
 uv run poe migrate              # bring the local database to the latest schema
+uv run poe seed                 # migrate, load the synthetic dataset, prove the ledger reconciles
 ```
 
 Call a tool over MCP Streamable HTTP:
@@ -74,8 +75,10 @@ curl -s localhost:8700/mcp \
 
 ```
 services/      core-api (FastAPI) · mcp-gateway (FastMCP) · screening-sim (FastAPI)
+packages/      kosha-domain (money, IDs, lifecycles, validators) · kosha-datagen (synthetic data)
+tests/support/ shared Postgres test container and row helpers
 docker/        one multi-stage image recipe for every service (Lambda Web Adapter)
-docs/          plans · architecture (HLD + 9 LLDs) · ADRs · diagrams · MkDocs site
+docs/          plans · architecture (HLD + 10 LLDs) · ADRs · diagrams · MkDocs site
 .github/       CI, docs, release workflows · Dependabot · templates
 ```
 
@@ -84,7 +87,7 @@ docs/          plans · architecture (HLD + 9 LLDs) · ADRs · diagrams · MkDoc
 - **Test-first**, with a failure matrix per tool (auth, scopes, masking, timeouts, breaker open, rate limits, idempotency).
 - **Strict gates:** ruff, pyright strict at zero errors, pytest with warnings as errors, ≥ 90% coverage per package.
 - **Reproducible images:** code-only rebuilds in ~7 s via a bit-for-bit reproducible dependency layer; non-root, read-only, all capabilities dropped.
-- **Decisions are written down:** [10 ADRs](docs/adr/index.md), a [domain glossary](GLOSSARY.md) and [versioned plans](docs/plans/CHANGELOG.md).
+- **Decisions are written down:** [12 ADRs](docs/adr/index.md), a [domain glossary](GLOSSARY.md) and [versioned plans](docs/plans/CHANGELOG.md).
 
 ---
 
