@@ -87,6 +87,7 @@ nav:
           - MCP gateway: architecture/lld/mcp-gateway.md
           - Core API: architecture/lld/core-api.md
           - Data model: architecture/lld/data-model.md
+          - Data generator: architecture/lld/datagen.md
           - Resilience: architecture/lld/resilience.md
           - RAG pipeline: architecture/lld/rag-pipeline.md
           - Async messaging: architecture/lld/async-messaging.md
@@ -107,6 +108,7 @@ nav:
       - 0009 Embeddings with FTS fallback: adr/0009-openai-embeddings-with-fts-degradation.md
       - 0010 CodeDeploy canaries: adr/0010-codedeploy-canary-from-github-actions.md
       - 0011 Composite FKs to transactions: adr/0011-composite-foreign-keys-to-partitioned-transactions.md
+      - 0012 Opening balances GL: adr/0012-opening-balances-gl-for-balances-brought-forward.md
   - Plans:
       - plans/CHANGELOG.md
       - v1.0 Architecture: plans/v1.0-architecture.md
