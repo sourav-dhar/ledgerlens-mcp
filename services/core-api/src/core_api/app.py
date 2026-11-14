@@ -9,6 +9,7 @@ from core_api import __version__
 from core_api.db import Database
 from core_api.errors import install_error_handlers
 from core_api.health import router as health_router
+from core_api.routers.customers import router as customers_router
 from core_api.settings import Settings
 
 
@@ -34,4 +35,5 @@ def create_app(settings: Settings | None = None) -> FastAPI:
     app.state.database = None  # until the lifespan has opened the pool
     install_error_handlers(app)
     app.include_router(health_router)
+    app.include_router(customers_router)
     return app
