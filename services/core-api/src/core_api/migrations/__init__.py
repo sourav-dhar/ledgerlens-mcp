@@ -14,6 +14,7 @@ from pathlib import Path
 
 from alembic import command
 from alembic.config import Config
+from alembic.script import ScriptDirectory
 
 _SCRIPT_LOCATION = Path(__file__).parent
 
@@ -30,6 +31,15 @@ def alembic_config(database_url: str) -> Config:
         "postgresql://", "postgresql+psycopg://", 1
     )
     return config
+
+
+def head() -> str:
+    """The newest revision this build ships; a ready database is at exactly this one."""
+    revision = ScriptDirectory(str(_SCRIPT_LOCATION)).get_current_head()
+    if revision is None:
+        msg = f"no migrations under {_SCRIPT_LOCATION}"
+        raise RuntimeError(msg)
+    return revision
 
 
 def upgrade(database_url: str, revision: str = "head") -> None:

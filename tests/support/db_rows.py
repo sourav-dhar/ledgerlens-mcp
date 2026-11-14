@@ -46,6 +46,22 @@ def customer(db: psycopg.Connection, **overrides: Any) -> str:
     return values["customer_id"]
 
 
+def address(db: psycopg.Connection, customer_id: str, **overrides: Any) -> str:
+    values: dict[str, Any] = {
+        "address_id": new_id(IdPrefix.ADDRESS),
+        "customer_id": customer_id,
+        "address_type": "permanent",
+        "line1": "14 MG Road",
+        "city": "Bengaluru",
+        "state": "Karnataka",
+        "state_code": "29",
+        "pincode": "560001",
+        "valid_from": "2024-01-15",
+    } | overrides
+    insert(db, "core.addresses", values)
+    return values["address_id"]
+
+
 def account(db: psycopg.Connection, customer_id: str, **overrides: Any) -> str:
     account_id = overrides.get("account_id", new_id(IdPrefix.ACCOUNT))
     values: dict[str, Any] = {

@@ -98,12 +98,14 @@ COPY packages/ /src/packages/
 COPY services/${SERVICE}/src/ /src/services/${SERVICE}/src/
 RUN python -m compileall -q /src
 
+# The adapter's readiness check gates every cold start, so it probes liveness: a check on
+# /readyz would hold every new instance hostage to the database.
 ENV PATH="/app/.venv/bin:${PATH}" \
     PYTHONUNBUFFERED=1 \
     PYTHONDONTWRITEBYTECODE=1 \
     HOST=0.0.0.0 \
     PORT=8080 \
-    AWS_LWA_READINESS_CHECK_PATH=/readyz \
+    AWS_LWA_READINESS_CHECK_PATH=/healthz \
     AWS_LWA_READINESS_CHECK_HEALTHY_STATUS=200 \
     AWS_LWA_READINESS_CHECK_TIMEOUT_SECONDS=9
 

@@ -101,7 +101,7 @@ The virtualenv layer is reproducible bit for bit: uv's `uv_cache.json` (source t
 | BuildKit cache mounts + GitHub Actions cache (`type=gha`) | Warm CI builds |
 | `linux/arm64` (Graviton) | ~20% cheaper Lambda compute |
 | Non-root user (uid 10001); code root-owned and read-only | Process cannot modify itself |
-| Lambda Web Adapter as extension | Same image serves HTTP locally and on Lambda; readiness via `/readyz` |
+| Lambda Web Adapter as extension | Same image serves HTTP locally and on Lambda; the adapter waits on `/healthz`, never on `/readyz`, so a database outage cannot stop instances starting |
 | Base images pinned by tag **and digest**, scanned by Trivy (fails on fixable HIGH/CRITICAL) | Reproducible, known CVE baseline |
 
 Exact base and adapter versions are pinned in the Dockerfile and bumped by Dependabot. Target uncompressed size: < 250 MB per image.
