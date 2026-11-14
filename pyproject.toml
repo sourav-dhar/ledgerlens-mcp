@@ -18,6 +18,7 @@ dev = [
     "poethepoet",
     "pre-commit",
     "testcontainers[postgres]>=4.15.0",
+    "syrupy>=5",
 ]
 docs = [
     "mkdocs-material",

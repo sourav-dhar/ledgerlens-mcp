@@ -154,11 +154,16 @@ jobs:
         run: |
           docker run -d --name smoke --read-only --tmpfs /tmp --cap-drop ALL \
             --security-opt no-new-privileges -p 8080:8080 "ledgerlens/${SERVICE}:ci"
-          for path in /healthz /readyz; do
-            curl --fail --silent --show-error --retry 20 --retry-delay 1 --retry-all-errors \
-              "http://127.0.0.1:8080${path}"
-            echo
-          done
+          curl --fail --silent --show-error --retry 20 --retry-delay 1 --retry-all-errors \
+            http://127.0.0.1:8080/healthz
+          echo
+          # core-api runs here without a database, so it must say it is not ready.
+          expected=200
+          if [ "${SERVICE}" = "core-api" ]; then expected=503; fi
+          status=$(curl --silent --output /dev/stderr --write-out '%{http_code}' \
+            http://127.0.0.1:8080/readyz)
+          echo
+          test "${status}" = "${expected}"
           if [ "${SERVICE}" = "mcp-gateway" ]; then
             curl --fail --silent --show-error http://127.0.0.1:8080/mcp \
               -H 'Content-Type: application/json' \

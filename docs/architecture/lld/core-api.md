@@ -8,10 +8,13 @@
 services/core-api/src/core_api/
 ├── app.py                 # create_app(settings) -> FastAPI; lifespan opens the pool
 ├── settings.py
+├── deps.py                # Caller from the gateway's headers; the configured Database
+├── errors.py              # ApiError family, database-error mapping, one error body
+├── health.py              # /healthz (liveness), /readyz (database at the shipped revision)
 ├── db/
-│   ├── pool.py            # psycopg 3 AsyncConnectionPool; min 0, max 2 per Lambda instance
-│   ├── uow.py             # UnitOfWork: one transaction, SET LOCAL context, commit/rollback
-│   └── rls.py             # set kosha.kb_ceiling, kosha.actor for RLS and audit
+│   ├── database.py        # Database: AsyncConnectionPool (min 0, max 2) + unit_of_work
+│   └── rls.py             # Caller; one set_config round trip: role, read-only, timeout, context
+├── schemas/               # response models: the HTTP contract, snapshot-tested
 ├── routers/
 │   ├── customers.py       # /v1/customers
 │   ├── accounts.py        # /v1/accounts, /v1/accounts/{id}/transactions
@@ -22,8 +25,7 @@ services/core-api/src/core_api/
 │   ├── disputes.py        # /v1/disputes
 │   ├── reviews.py         # /v1/reviews
 │   ├── kb.py              # /v1/kb/search, /v1/kb/documents/{doc_code}
-│   ├── audit.py           # /v1/audit
-│   └── health.py          # /healthz (liveness), /readyz (pool + migration version)
+│   └── audit.py           # /v1/audit
 ├── repositories/          # one per aggregate; SQL lives here and only here
 ├── services/              # use cases: DisputeService, ReviewService, LedgerService
 └── migrations/            # Alembic; forward-only in production
@@ -53,6 +55,17 @@ flowchart TB
 *Notice: only repositories contain SQL and only the unit of work opens transactions; domain code is pure and has no I/O, so it is tested without a database.*
 
 Read-only routes call repositories directly through a read-only unit of work (`SET TRANSACTION READ ONLY`). Write routes always go through a service.
+
+Every unit of work opens with one statement that sets, transaction-locally (`set_config(..., true)`):
+
+| Setting | Value | Why |
+|---|---|---|
+| `role` | `kosha_app` | Grants, `forbid_change()` and row-level security apply even when the login role is the owner (locally, a superuser) |
+| `transaction_read_only` | `on` for reads | A read route cannot write by mistake |
+| `statement_timeout` | `DB_STATEMENT_TIMEOUT_MS` (3 s) | A runaway query answers `504` instead of holding the connection |
+| `kosha.actor`, `kosha.kb_ceiling` | From the `X-Kosha-Actor` and `X-Kosha-Kb-Ceiling` headers | Audit and knowledge-base RLS; no ceiling means no KB rows |
+
+Because each setting ends with the transaction, a pooled connection never carries one caller's identity into another's request.
 
 ## 3. Transaction boundaries
 
@@ -148,12 +161,18 @@ FastAPI generates the OpenAPI 3.1 document. It is:
 - used to generate nothing: the gateway's client is hand-written against shared `kosha-domain` models, which keeps both sides typed without a codegen step;
 - published on the docs site as the internal API reference.
 
-| Status | Meaning |
-|---|---|
-| `200` / `201` | Success / created |
-| `400` | Validation failed (`invalid_argument`) |
-| `404` | Not found |
-| `409` | Idempotency conflict or illegal state transition |
-| `422` | Reserved for FastAPI request parsing errors, mapped to `invalid_argument` by the gateway |
-| `503` | Pool exhausted or dependency unavailable (`Retry-After` set) |
-| `504` | Deadline exceeded inside `core-api` |
+Errors share one body, `{"error": {"code": "...", "message": "..."}}`; `code` is the stable part the gateway maps.
+
+| Status | `code` | Meaning |
+|---|---|---|
+| `200` / `201` | | Success / created |
+| `400` | `invalid_argument` | Validation the schema cannot express (a malformed ID, no search criterion) |
+| `404` | `not_found` | Not found |
+| `409` | `conflict` | Idempotency conflict, illegal state transition (`check_violation` from a `*_lifecycle` trigger) or a change to append-only history (`restrict_violation`) |
+| `422` | | Reserved for FastAPI request parsing errors, mapped to `invalid_argument` by the gateway |
+| `503` | `unavailable` | Pool exhausted, database unreachable or not configured (`Retry-After: 1`) |
+| `504` | `deadline_exceeded` | `statement_timeout` cancelled the query |
+
+Any other database error is a defect and answers `500`.
+
+`/readyz` answers `200` only when the database is reachable and at the Alembic head this build ships, and `503` otherwise. The Lambda Web Adapter waits on `/healthz` instead, so a database outage cannot stop instances starting.
