@@ -1,6 +1,6 @@
 [project]
 name = "kosha-domain"
-version = "0.2.0"
+version = "0.3.0"
 description = "Kosha Financial domain primitives: money, identifiers, lifecycles, validators"
 requires-python = ">=3.13,<3.14"
 dependencies = []

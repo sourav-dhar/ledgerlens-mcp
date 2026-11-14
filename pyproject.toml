@@ -1,6 +1,6 @@
 [project]
 name = "ledgerlens-mcp"
-version = "0.2.0"
+version = "0.3.0"
 description = "Production-grade fintech MCP server on AWS (workspace root)"
 readme = "README.md"
 license = "MIT"
