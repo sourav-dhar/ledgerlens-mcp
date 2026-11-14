@@ -7,14 +7,23 @@ from fastapi import Depends, Request, Security
 from fastapi.security import APIKeyHeader
 
 from core_api.db import Caller, Database
-from core_api.errors import UnauthenticatedError, UnavailableError
+from core_api.errors import InvalidArgumentError, UnauthenticatedError, UnavailableError
 from core_api.settings import Settings
+from kosha_domain.ids import IdPrefix, is_valid_id
 from kosha_domain.signing import ACTOR, KB_CEILING, SIGNATURE, TIMESTAMP, SignatureError, verify
 
 
 def _database(request: Request) -> Database | None:
     database: Database | None = request.app.state.database
     return database
+
+
+def checked_id(value: str, prefix: IdPrefix, *, name: str) -> str:
+    """``value`` if it is a well-formed ID of the expected kind, else ``400``."""
+    if not is_valid_id(value, prefix):
+        msg = f"{name} {value!r} is not an ID of the form {prefix.value}_<ULID>"
+        raise InvalidArgumentError(msg)
+    return value
 
 
 def require(database: Database | None) -> Database:

@@ -1,0 +1,2309 @@
+{
+  "components": {
+    "schemas": {
+      "AccountStatus": {
+        "enum": [
+          "pending_activation",
+          "active",
+          "kyc_pending",
+          "dormant",
+          "inoperative",
+          "debit_freeze",
+          "credit_freeze",
+          "total_freeze",
+          "lien_marked",
+          "on_hold",
+          "pending_closure",
+          "closed"
+        ],
+        "title": "AccountStatus",
+        "type": "string"
+      },
+      "AccountSummary": {
+        "properties": {
+          "account_id": {
+            "title": "Account Id",
+            "type": "string"
+          },
+          "account_number": {
+            "title": "Account Number",
+            "type": "string"
+          },
+          "available_balance_paise": {
+            "title": "Available Balance Paise",
+            "type": "integer"
+          },
+          "cards": {
+            "items": {
+              "$ref": "#/components/schemas/Card"
+            },
+            "title": "Cards",
+            "type": "array"
+          },
+          "closed_at": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Closed At"
+          },
+          "customer_id": {
+            "title": "Customer Id",
+            "type": "string"
+          },
+          "hold_amount_paise": {
+            "title": "Hold Amount Paise",
+            "type": "integer"
+          },
+          "ifsc": {
+            "title": "Ifsc",
+            "type": "string"
+          },
+          "interest_rate_bps": {
+            "title": "Interest Rate Bps",
+            "type": "integer"
+          },
+          "last_txn_at": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Last Txn At"
+          },
+          "ledger_balance_paise": {
+            "title": "Ledger Balance Paise",
+            "type": "integer"
+          },
+          "minimum_balance_paise": {
+            "title": "Minimum Balance Paise",
+            "type": "integer"
+          },
+          "mode_of_operation": {
+            "$ref": "#/components/schemas/ModeOfOperation"
+          },
+          "nominee_registered": {
+            "title": "Nominee Registered",
+            "type": "boolean"
+          },
+          "opened_at": {
+            "format": "date-time",
+            "title": "Opened At",
+            "type": "string"
+          },
+          "overdraft_limit_paise": {
+            "title": "Overdraft Limit Paise",
+            "type": "integer"
+          },
+          "product_code": {
+            "$ref": "#/components/schemas/ProductCode"
+          },
+          "status": {
+            "$ref": "#/components/schemas/AccountStatus"
+          },
+          "status_reason": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Status Reason"
+          },
+          "vpas": {
+            "items": {
+              "$ref": "#/components/schemas/Vpa"
+            },
+            "title": "Vpas",
+            "type": "array"
+          }
+        },
+        "required": [
+          "account_id",
+          "customer_id",
+          "account_number",
+          "ifsc",
+          "product_code",
+          "status",
+          "status_reason",
+          "mode_of_operation",
+          "opened_at",
+          "closed_at",
+          "ledger_balance_paise",
+          "hold_amount_paise",
+          "available_balance_paise",
+          "minimum_balance_paise",
+          "interest_rate_bps",
+          "overdraft_limit_paise",
+          "nominee_registered",
+          "last_txn_at",
+          "cards",
+          "vpas"
+        ],
+        "title": "AccountSummary",
+        "type": "object"
+      },
+      "Actor": {
+        "description": "Who or what caused a status change recorded in history.",
+        "enum": [
+          "system",
+          "customer",
+          "staff",
+          "npci",
+          "risk_engine"
+        ],
+        "title": "Actor",
+        "type": "string"
+      },
+      "Address": {
+        "properties": {
+          "address_id": {
+            "title": "Address Id",
+            "type": "string"
+          },
+          "address_type": {
+            "$ref": "#/components/schemas/AddressType"
+          },
+          "city": {
+            "title": "City",
+            "type": "string"
+          },
+          "country": {
+            "title": "Country",
+            "type": "string"
+          },
+          "district": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "District"
+          },
+          "is_verified": {
+            "title": "Is Verified",
+            "type": "boolean"
+          },
+          "line1": {
+            "title": "Line1",
+            "type": "string"
+          },
+          "line2": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Line2"
+          },
+          "pincode": {
+            "title": "Pincode",
+            "type": "string"
+          },
+          "state": {
+            "title": "State",
+            "type": "string"
+          },
+          "state_code": {
+            "title": "State Code",
+            "type": "string"
+          },
+          "valid_from": {
+            "format": "date",
+            "title": "Valid From",
+            "type": "string"
+          },
+          "valid_to": {
+            "anyOf": [
+              {
+                "format": "date",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Valid To"
+          }
+        },
+        "required": [
+          "address_id",
+          "address_type",
+          "line1",
+          "line2",
+          "city",
+          "district",
+          "state",
+          "state_code",
+          "pincode",
+          "country",
+          "is_verified",
+          "valid_from",
+          "valid_to"
+        ],
+        "title": "Address",
+        "type": "object"
+      },
+      "AddressType": {
+        "enum": [
+          "permanent",
+          "correspondence"
+        ],
+        "title": "AddressType",
+        "type": "string"
+      },
+      "Card": {
+        "properties": {
+          "atm_limit_paise": {
+            "title": "Atm Limit Paise",
+            "type": "integer"
+          },
+          "card_id": {
+            "title": "Card Id",
+            "type": "string"
+          },
+          "card_type": {
+            "$ref": "#/components/schemas/CardType"
+          },
+          "contactless_enabled": {
+            "title": "Contactless Enabled",
+            "type": "boolean"
+          },
+          "ecom_limit_paise": {
+            "title": "Ecom Limit Paise",
+            "type": "integer"
+          },
+          "expiry_month": {
+            "title": "Expiry Month",
+            "type": "integer"
+          },
+          "expiry_year": {
+            "title": "Expiry Year",
+            "type": "integer"
+          },
+          "international_enabled": {
+            "title": "International Enabled",
+            "type": "boolean"
+          },
+          "issued_at": {
+            "format": "date-time",
+            "title": "Issued At",
+            "type": "string"
+          },
+          "network": {
+            "$ref": "#/components/schemas/CardNetwork"
+          },
+          "pan_last4": {
+            "title": "Pan Last4",
+            "type": "string"
+          },
+          "pos_limit_paise": {
+            "title": "Pos Limit Paise",
+            "type": "integer"
+          },
+          "status": {
+            "$ref": "#/components/schemas/CardStatus"
+          }
+        },
+        "required": [
+          "card_id",
+          "network",
+          "card_type",
+          "pan_last4",
+          "status",
+          "expiry_month",
+          "expiry_year",
+          "atm_limit_paise",
+          "pos_limit_paise",
+          "ecom_limit_paise",
+          "contactless_enabled",
+          "international_enabled",
+          "issued_at"
+        ],
+        "title": "Card",
+        "type": "object"
+      },
+      "CardNetwork": {
+        "enum": [
+          "rupay",
+          "visa",
+          "mastercard"
+        ],
+        "title": "CardNetwork",
+        "type": "string"
+      },
+      "CardStatus": {
+        "enum": [
+          "inactive",
+          "active",
+          "temp_blocked",
+          "pin_blocked",
+          "blocked",
+          "hotlisted",
+          "expired",
+          "replaced"
+        ],
+        "title": "CardStatus",
+        "type": "string"
+      },
+      "CardType": {
+        "enum": [
+          "debit",
+          "credit",
+          "prepaid"
+        ],
+        "title": "CardType",
+        "type": "string"
+      },
+      "Channel": {
+        "description": "The touchpoint where a Transaction was initiated (see GLOSSARY: Channel).",
+        "enum": [
+          "mobile_app",
+          "web",
+          "pos",
+          "atm",
+          "api"
+        ],
+        "title": "Channel",
+        "type": "string"
+      },
+      "CustomerProfile": {
+        "properties": {
+          "addresses": {
+            "items": {
+              "$ref": "#/components/schemas/Address"
+            },
+            "title": "Addresses",
+            "type": "array"
+          },
+          "annual_income_band": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/IncomeBand"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "cif_number": {
+            "title": "Cif Number",
+            "type": "string"
+          },
+          "created_at": {
+            "format": "date-time",
+            "title": "Created At",
+            "type": "string"
+          },
+          "customer_id": {
+            "title": "Customer Id",
+            "type": "string"
+          },
+          "date_of_birth": {
+            "format": "date",
+            "title": "Date Of Birth",
+            "type": "string"
+          },
+          "email": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Email"
+          },
+          "employer_name": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Employer Name"
+          },
+          "first_name": {
+            "title": "First Name",
+            "type": "string"
+          },
+          "gender": {
+            "$ref": "#/components/schemas/Gender"
+          },
+          "last_name": {
+            "title": "Last Name",
+            "type": "string"
+          },
+          "middle_name": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Middle Name"
+          },
+          "mobile": {
+            "title": "Mobile",
+            "type": "string"
+          },
+          "mobile_verified": {
+            "title": "Mobile Verified",
+            "type": "boolean"
+          },
+          "occupation": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Occupation"
+          },
+          "onboarding_channel": {
+            "$ref": "#/components/schemas/OnboardingChannel"
+          },
+          "persona": {
+            "$ref": "#/components/schemas/Persona"
+          },
+          "preferred_language": {
+            "title": "Preferred Language",
+            "type": "string"
+          },
+          "relationship_start_date": {
+            "format": "date",
+            "title": "Relationship Start Date",
+            "type": "string"
+          },
+          "residential_status": {
+            "$ref": "#/components/schemas/ResidentialStatus"
+          },
+          "risk_category": {
+            "$ref": "#/components/schemas/RiskCategory"
+          },
+          "segment": {
+            "$ref": "#/components/schemas/Segment"
+          },
+          "status": {
+            "$ref": "#/components/schemas/CustomerStatus"
+          },
+          "updated_at": {
+            "format": "date-time",
+            "title": "Updated At",
+            "type": "string"
+          }
+        },
+        "required": [
+          "customer_id",
+          "cif_number",
+          "first_name",
+          "middle_name",
+          "last_name",
+          "date_of_birth",
+          "gender",
+          "email",
+          "mobile",
+          "mobile_verified",
+          "persona",
+          "occupation",
+          "employer_name",
+          "annual_income_band",
+          "segment",
+          "residential_status",
+          "preferred_language",
+          "onboarding_channel",
+          "relationship_start_date",
+          "status",
+          "risk_category",
+          "created_at",
+          "updated_at",
+          "addresses"
+        ],
+        "title": "CustomerProfile",
+        "type": "object"
+      },
+      "CustomerSearchResult": {
+        "properties": {
+          "customers": {
+            "items": {
+              "$ref": "#/components/schemas/CustomerSummary"
+            },
+            "title": "Customers",
+            "type": "array"
+          }
+        },
+        "required": [
+          "customers"
+        ],
+        "title": "CustomerSearchResult",
+        "type": "object"
+      },
+      "CustomerStatus": {
+        "description": "A Customer's standing with the bank; Account and KYC statuses are separate lifecycles.",
+        "enum": [
+          "prospect",
+          "active",
+          "on_hold",
+          "dormant",
+          "frozen",
+          "under_investigation",
+          "deceased_claim_pending",
+          "closed"
+        ],
+        "title": "CustomerStatus",
+        "type": "string"
+      },
+      "CustomerSummary": {
+        "description": "One search hit: enough to tell Customers apart and pick one.",
+        "properties": {
+          "cif_number": {
+            "title": "Cif Number",
+            "type": "string"
+          },
+          "customer_id": {
+            "title": "Customer Id",
+            "type": "string"
+          },
+          "full_name": {
+            "title": "Full Name",
+            "type": "string"
+          },
+          "mobile": {
+            "title": "Mobile",
+            "type": "string"
+          },
+          "segment": {
+            "$ref": "#/components/schemas/Segment"
+          },
+          "status": {
+            "$ref": "#/components/schemas/CustomerStatus"
+          }
+        },
+        "required": [
+          "customer_id",
+          "cif_number",
+          "full_name",
+          "mobile",
+          "segment",
+          "status"
+        ],
+        "title": "CustomerSummary",
+        "type": "object"
+      },
+      "Direction": {
+        "description": "Whether a Transaction takes money out of the Account or brings it in.",
+        "enum": [
+          "debit",
+          "credit"
+        ],
+        "title": "Direction",
+        "type": "string"
+      },
+      "Gender": {
+        "description": "Gender as recorded on Indian KYC documents.",
+        "enum": [
+          "female",
+          "male",
+          "transgender"
+        ],
+        "title": "Gender",
+        "type": "string"
+      },
+      "HTTPValidationError": {
+        "properties": {
+          "detail": {
+            "items": {
+              "$ref": "#/components/schemas/ValidationError"
+            },
+            "title": "Detail",
+            "type": "array"
+          }
+        },
+        "title": "HTTPValidationError",
+        "type": "object"
+      },
+      "HealthStatus": {
+        "description": "Probe response; `status` is the only field orchestrators read.",
+        "properties": {
+          "service": {
+            "title": "Service",
+            "type": "string"
+          },
+          "status": {
+            "const": "ok",
+            "title": "Status",
+            "type": "string"
+          },
+          "version": {
+            "title": "Version",
+            "type": "string"
+          }
+        },
+        "required": [
+          "status",
+          "service",
+          "version"
+        ],
+        "title": "HealthStatus",
+        "type": "object"
+      },
+      "IncomeBand": {
+        "description": "Declared annual income, in the lakh bands Indian onboarding forms use.",
+        "enum": [
+          "up_to_3_lakh",
+          "3_to_6_lakh",
+          "6_to_12_lakh",
+          "12_to_25_lakh",
+          "25_to_50_lakh",
+          "above_50_lakh"
+        ],
+        "title": "IncomeBand",
+        "type": "string"
+      },
+      "KeysetPosition": {
+        "description": "The last row of a page; pass it back as ``after_*`` to read the next one.",
+        "properties": {
+          "initiated_at": {
+            "format": "date-time",
+            "title": "Initiated At",
+            "type": "string"
+          },
+          "txn_id": {
+            "title": "Txn Id",
+            "type": "string"
+          }
+        },
+        "required": [
+          "initiated_at",
+          "txn_id"
+        ],
+        "title": "KeysetPosition",
+        "type": "object"
+      },
+      "ModeOfOperation": {
+        "enum": [
+          "single",
+          "joint"
+        ],
+        "title": "ModeOfOperation",
+        "type": "string"
+      },
+      "OnboardingChannel": {
+        "description": "Where a Customer's relationship began.",
+        "enum": [
+          "app",
+          "web",
+          "assisted",
+          "partner"
+        ],
+        "title": "OnboardingChannel",
+        "type": "string"
+      },
+      "Persona": {
+        "description": "The behavioural archetype a Customer belongs to (see GLOSSARY: Persona).",
+        "enum": [
+          "salaried",
+          "student",
+          "gig_worker",
+          "sme_owner",
+          "nri",
+          "senior_citizen"
+        ],
+        "title": "Persona",
+        "type": "string"
+      },
+      "ProductCode": {
+        "description": "The deposit product an Account is opened under.",
+        "enum": [
+          "savings_regular",
+          "savings_salary",
+          "current",
+          "fixed_deposit",
+          "recurring_deposit"
+        ],
+        "title": "ProductCode",
+        "type": "string"
+      },
+      "Rail": {
+        "description": "The payment network a Transaction travels on (see GLOSSARY: Rail).",
+        "enum": [
+          "upi",
+          "imps",
+          "neft",
+          "rtgs",
+          "card_pos",
+          "card_ecom",
+          "atm",
+          "nach",
+          "internal"
+        ],
+        "title": "Rail",
+        "type": "string"
+      },
+      "Readiness": {
+        "properties": {
+          "schema_revision": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Schema Revision"
+          },
+          "service": {
+            "title": "Service",
+            "type": "string"
+          },
+          "status": {
+            "enum": [
+              "ok",
+              "unavailable"
+            ],
+            "title": "Status",
+            "type": "string"
+          },
+          "version": {
+            "title": "Version",
+            "type": "string"
+          }
+        },
+        "required": [
+          "status",
+          "service",
+          "version",
+          "schema_revision"
+        ],
+        "title": "Readiness",
+        "type": "object"
+      },
+      "ResidentialStatus": {
+        "enum": [
+          "resident",
+          "nri"
+        ],
+        "title": "ResidentialStatus",
+        "type": "string"
+      },
+      "RiskCategory": {
+        "description": "KYC risk category; it sets the Re-KYC interval (see GLOSSARY: Risk category).",
+        "enum": [
+          "low",
+          "medium",
+          "high"
+        ],
+        "title": "RiskCategory",
+        "type": "string"
+      },
+      "Segment": {
+        "description": "The commercial tier a Customer is served in (see GLOSSARY: Segment).",
+        "enum": [
+          "mass",
+          "affluent",
+          "premium"
+        ],
+        "title": "Segment",
+        "type": "string"
+      },
+      "StatusChange": {
+        "properties": {
+          "actor": {
+            "$ref": "#/components/schemas/Actor"
+          },
+          "from_status": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/TransactionStatus"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "occurred_at": {
+            "format": "date-time",
+            "title": "Occurred At",
+            "type": "string"
+          },
+          "reason_code": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Reason Code"
+          },
+          "to_status": {
+            "$ref": "#/components/schemas/TransactionStatus"
+          }
+        },
+        "required": [
+          "from_status",
+          "to_status",
+          "reason_code",
+          "actor",
+          "occurred_at"
+        ],
+        "title": "StatusChange",
+        "type": "object"
+      },
+      "Transaction": {
+        "properties": {
+          "account_id": {
+            "title": "Account Id",
+            "type": "string"
+          },
+          "amount_paise": {
+            "title": "Amount Paise",
+            "type": "integer"
+          },
+          "balance_after_paise": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Balance After Paise"
+          },
+          "channel": {
+            "$ref": "#/components/schemas/Channel"
+          },
+          "counterparty_account_masked": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Counterparty Account Masked"
+          },
+          "counterparty_ifsc": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Counterparty Ifsc"
+          },
+          "counterparty_name": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Counterparty Name"
+          },
+          "counterparty_vpa": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Counterparty Vpa"
+          },
+          "currency": {
+            "title": "Currency",
+            "type": "string"
+          },
+          "customer_id": {
+            "title": "Customer Id",
+            "type": "string"
+          },
+          "direction": {
+            "$ref": "#/components/schemas/Direction"
+          },
+          "expected_credit_by": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Expected Credit By"
+          },
+          "failure_reason_code": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Failure Reason Code"
+          },
+          "geo_city": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Geo City"
+          },
+          "hold_reason": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Hold Reason"
+          },
+          "initiated_at": {
+            "format": "date-time",
+            "title": "Initiated At",
+            "type": "string"
+          },
+          "is_flagged": {
+            "title": "Is Flagged",
+            "type": "boolean"
+          },
+          "mcc": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Mcc"
+          },
+          "merchant_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Merchant Id"
+          },
+          "narration": {
+            "title": "Narration",
+            "type": "string"
+          },
+          "npci_txn_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Npci Txn Id"
+          },
+          "posted_at": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Posted At"
+          },
+          "rail": {
+            "$ref": "#/components/schemas/Rail"
+          },
+          "remarks": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Remarks"
+          },
+          "risk_score": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Risk Score"
+          },
+          "rrn": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Rrn"
+          },
+          "status": {
+            "$ref": "#/components/schemas/TransactionStatus"
+          },
+          "status_reason_code": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Status Reason Code"
+          },
+          "txn_id": {
+            "title": "Txn Id",
+            "type": "string"
+          },
+          "txn_type": {
+            "$ref": "#/components/schemas/TransactionType"
+          },
+          "utr": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Utr"
+          },
+          "value_date": {
+            "anyOf": [
+              {
+                "format": "date",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Value Date"
+          }
+        },
+        "required": [
+          "txn_id",
+          "account_id",
+          "customer_id",
+          "direction",
+          "amount_paise",
+          "currency",
+          "rail",
+          "txn_type",
+          "status",
+          "status_reason_code",
+          "failure_reason_code",
+          "hold_reason",
+          "expected_credit_by",
+          "utr",
+          "rrn",
+          "npci_txn_id",
+          "counterparty_name",
+          "counterparty_vpa",
+          "counterparty_account_masked",
+          "counterparty_ifsc",
+          "merchant_id",
+          "mcc",
+          "channel",
+          "geo_city",
+          "narration",
+          "remarks",
+          "initiated_at",
+          "posted_at",
+          "value_date",
+          "balance_after_paise",
+          "risk_score",
+          "is_flagged"
+        ],
+        "title": "Transaction",
+        "type": "object"
+      },
+      "TransactionDetail": {
+        "properties": {
+          "account_id": {
+            "title": "Account Id",
+            "type": "string"
+          },
+          "amount_paise": {
+            "title": "Amount Paise",
+            "type": "integer"
+          },
+          "balance_after_paise": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Balance After Paise"
+          },
+          "channel": {
+            "$ref": "#/components/schemas/Channel"
+          },
+          "counterparty_account_masked": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Counterparty Account Masked"
+          },
+          "counterparty_ifsc": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Counterparty Ifsc"
+          },
+          "counterparty_name": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Counterparty Name"
+          },
+          "counterparty_vpa": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Counterparty Vpa"
+          },
+          "currency": {
+            "title": "Currency",
+            "type": "string"
+          },
+          "customer_id": {
+            "title": "Customer Id",
+            "type": "string"
+          },
+          "device_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Device Id"
+          },
+          "direction": {
+            "$ref": "#/components/schemas/Direction"
+          },
+          "expected_credit_by": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Expected Credit By"
+          },
+          "failure_reason_code": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Failure Reason Code"
+          },
+          "geo_city": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Geo City"
+          },
+          "geo_lat": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Geo Lat"
+          },
+          "geo_lng": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Geo Lng"
+          },
+          "hold_reason": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Hold Reason"
+          },
+          "initiated_at": {
+            "format": "date-time",
+            "title": "Initiated At",
+            "type": "string"
+          },
+          "ip_address": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Ip Address"
+          },
+          "is_flagged": {
+            "title": "Is Flagged",
+            "type": "boolean"
+          },
+          "mcc": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Mcc"
+          },
+          "merchant_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Merchant Id"
+          },
+          "narration": {
+            "title": "Narration",
+            "type": "string"
+          },
+          "npci_txn_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Npci Txn Id"
+          },
+          "posted_at": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Posted At"
+          },
+          "rail": {
+            "$ref": "#/components/schemas/Rail"
+          },
+          "remarks": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Remarks"
+          },
+          "risk_score": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Risk Score"
+          },
+          "rrn": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Rrn"
+          },
+          "status": {
+            "$ref": "#/components/schemas/TransactionStatus"
+          },
+          "status_history": {
+            "items": {
+              "$ref": "#/components/schemas/StatusChange"
+            },
+            "title": "Status History",
+            "type": "array"
+          },
+          "status_reason_code": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Status Reason Code"
+          },
+          "txn_id": {
+            "title": "Txn Id",
+            "type": "string"
+          },
+          "txn_type": {
+            "$ref": "#/components/schemas/TransactionType"
+          },
+          "utr": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Utr"
+          },
+          "value_date": {
+            "anyOf": [
+              {
+                "format": "date",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Value Date"
+          }
+        },
+        "required": [
+          "txn_id",
+          "account_id",
+          "customer_id",
+          "direction",
+          "amount_paise",
+          "currency",
+          "rail",
+          "txn_type",
+          "status",
+          "status_reason_code",
+          "failure_reason_code",
+          "hold_reason",
+          "expected_credit_by",
+          "utr",
+          "rrn",
+          "npci_txn_id",
+          "counterparty_name",
+          "counterparty_vpa",
+          "counterparty_account_masked",
+          "counterparty_ifsc",
+          "merchant_id",
+          "mcc",
+          "channel",
+          "geo_city",
+          "narration",
+          "remarks",
+          "initiated_at",
+          "posted_at",
+          "value_date",
+          "balance_after_paise",
+          "risk_score",
+          "is_flagged",
+          "device_id",
+          "ip_address",
+          "geo_lat",
+          "geo_lng",
+          "status_history"
+        ],
+        "title": "TransactionDetail",
+        "type": "object"
+      },
+      "TransactionPage": {
+        "properties": {
+          "items": {
+            "items": {
+              "$ref": "#/components/schemas/Transaction"
+            },
+            "title": "Items",
+            "type": "array"
+          },
+          "next": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/KeysetPosition"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          }
+        },
+        "required": [
+          "items",
+          "next"
+        ],
+        "title": "TransactionPage",
+        "type": "object"
+      },
+      "TransactionStatus": {
+        "enum": [
+          "initiated",
+          "authorised",
+          "processing",
+          "pending",
+          "success",
+          "credit_delayed",
+          "deemed_success",
+          "on_hold",
+          "under_review",
+          "pending_settlement",
+          "settled",
+          "failed",
+          "timed_out",
+          "declined",
+          "cancelled",
+          "expired",
+          "returned",
+          "reversal_initiated",
+          "reversed",
+          "partially_reversed",
+          "refunded",
+          "chargeback_initiated"
+        ],
+        "title": "TransactionStatus",
+        "type": "string"
+      },
+      "TransactionType": {
+        "description": "The economic purpose of a Transaction, independent of its Rail.",
+        "enum": [
+          "p2p",
+          "p2m",
+          "salary",
+          "emi",
+          "bill_pay",
+          "refund",
+          "reversal",
+          "cash_withdrawal",
+          "interest_credit",
+          "charges",
+          "fd_booking"
+        ],
+        "title": "TransactionType",
+        "type": "string"
+      },
+      "ValidationError": {
+        "properties": {
+          "ctx": {
+            "title": "Context",
+            "type": "object"
+          },
+          "input": {
+            "title": "Input"
+          },
+          "loc": {
+            "items": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "integer"
+                }
+              ]
+            },
+            "title": "Location",
+            "type": "array"
+          },
+          "msg": {
+            "title": "Message",
+            "type": "string"
+          },
+          "type": {
+            "title": "Error Type",
+            "type": "string"
+          }
+        },
+        "required": [
+          "loc",
+          "msg",
+          "type"
+        ],
+        "title": "ValidationError",
+        "type": "object"
+      },
+      "Vpa": {
+        "properties": {
+          "created_at": {
+            "format": "date-time",
+            "title": "Created At",
+            "type": "string"
+          },
+          "is_primary": {
+            "title": "Is Primary",
+            "type": "boolean"
+          },
+          "status": {
+            "$ref": "#/components/schemas/VpaStatus"
+          },
+          "vpa": {
+            "title": "Vpa",
+            "type": "string"
+          },
+          "vpa_id": {
+            "title": "Vpa Id",
+            "type": "string"
+          }
+        },
+        "required": [
+          "vpa_id",
+          "vpa",
+          "is_primary",
+          "status",
+          "created_at"
+        ],
+        "title": "Vpa",
+        "type": "object"
+      },
+      "VpaStatus": {
+        "enum": [
+          "active",
+          "suspended",
+          "deregistered"
+        ],
+        "title": "VpaStatus",
+        "type": "string"
+      }
+    },
+    "securitySchemes": {
+      "GatewaySignature": {
+        "description": "`v1=` and a hex HMAC-SHA256 by the gateway over the method, target, body, `X-Kosha-Timestamp`, `X-Kosha-Actor` and `X-Kosha-Kb-Ceiling` headers (ADR 0013).",
+        "in": "header",
+        "name": "X-Kosha-Signature",
+        "type": "apiKey"
+      }
+    }
+  },
+  "info": {
+    "title": "Kosha Core Banking API"
+  },
+  "openapi": "3.1.0",
+  "paths": {
+    "/healthz": {
+      "get": {
+        "description": "The process is up and serving requests. It never touches the database.",
+        "operationId": "healthz_healthz_get",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HealthStatus"
+                }
+              }
+            },
+            "description": "Successful Response"
+          }
+        },
+        "summary": "Liveness probe",
+        "tags": [
+          "health"
+        ]
+      }
+    },
+    "/readyz": {
+      "get": {
+        "description": "The database answers and is migrated to exactly the revision this build expects.",
+        "operationId": "readyz_readyz_get",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Readiness"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "503": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Readiness"
+                }
+              }
+            },
+            "description": "Not ready; retry shortly"
+          }
+        },
+        "summary": "Readiness probe",
+        "tags": [
+          "health"
+        ]
+      }
+    },
+    "/v1/accounts/{account_id}": {
+      "get": {
+        "description": "Balances, cards (newest first) and VPAs (primary first).",
+        "operationId": "get_account_v1_accounts__account_id__get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "account_id",
+            "required": true,
+            "schema": {
+              "title": "Account Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AccountSummary"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "400": {
+            "description": "Invalid argument"
+          },
+          "404": {
+            "description": "No such Account"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          },
+          "503": {
+            "description": "Database unavailable; retry shortly"
+          },
+          "504": {
+            "description": "Deadline exceeded"
+          }
+        },
+        "security": [
+          {
+            "GatewaySignature": []
+          }
+        ],
+        "summary": "Get an Account's summary",
+        "tags": [
+          "accounts"
+        ]
+      }
+    },
+    "/v1/accounts/{account_id}/transactions": {
+      "get": {
+        "description": "Transactions newest first, a page at a time (keyset on `initiated_at`, `txn_id`).",
+        "operationId": "search_transactions_v1_accounts__account_id__transactions_get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "account_id",
+            "required": true,
+            "schema": {
+              "title": "Account Id",
+              "type": "string"
+            }
+          },
+          {
+            "description": "Inclusive start; defaults to 90 days ago. Windows span ≤ 366 days.",
+            "in": "query",
+            "name": "initiated_from",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "format": "date-time",
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Inclusive start; defaults to 90 days ago. Windows span ≤ 366 days.",
+              "title": "Initiated From"
+            }
+          },
+          {
+            "description": "Exclusive end; defaults to now.",
+            "in": "query",
+            "name": "initiated_before",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "format": "date-time",
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Exclusive end; defaults to now.",
+              "title": "Initiated Before"
+            }
+          },
+          {
+            "in": "query",
+            "name": "direction",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "$ref": "#/components/schemas/Direction"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Direction"
+            }
+          },
+          {
+            "in": "query",
+            "name": "status",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "items": {
+                    "$ref": "#/components/schemas/TransactionStatus"
+                  },
+                  "type": "array"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Status"
+            }
+          },
+          {
+            "in": "query",
+            "name": "rail",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "items": {
+                    "$ref": "#/components/schemas/Rail"
+                  },
+                  "type": "array"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Rail"
+            }
+          },
+          {
+            "in": "query",
+            "name": "min_amount_paise",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "exclusiveMinimum": 0,
+                  "type": "integer"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Min Amount Paise"
+            }
+          },
+          {
+            "in": "query",
+            "name": "max_amount_paise",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "exclusiveMinimum": 0,
+                  "type": "integer"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Max Amount Paise"
+            }
+          },
+          {
+            "description": "Part of the narration.",
+            "in": "query",
+            "name": "text",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "maxLength": 100,
+                  "minLength": 3,
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Part of the narration.",
+              "title": "Text"
+            }
+          },
+          {
+            "description": "From the previous page's `next`.",
+            "in": "query",
+            "name": "after_initiated_at",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "format": "date-time",
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "From the previous page's `next`.",
+              "title": "After Initiated At"
+            }
+          },
+          {
+            "description": "From the previous page's `next`.",
+            "in": "query",
+            "name": "after_txn_id",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "From the previous page's `next`.",
+              "title": "After Txn Id"
+            }
+          },
+          {
+            "in": "query",
+            "name": "limit",
+            "required": false,
+            "schema": {
+              "default": 25,
+              "maximum": 100,
+              "minimum": 1,
+              "title": "Limit",
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TransactionPage"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "400": {
+            "description": "Invalid argument"
+          },
+          "404": {
+            "description": "No such Account"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          },
+          "503": {
+            "description": "Database unavailable; retry shortly"
+          },
+          "504": {
+            "description": "Deadline exceeded"
+          }
+        },
+        "security": [
+          {
+            "GatewaySignature": []
+          }
+        ],
+        "summary": "Search an Account's Transactions",
+        "tags": [
+          "accounts"
+        ]
+      }
+    },
+    "/v1/customers": {
+      "get": {
+        "description": "Customers matching every criterion given, in name order.",
+        "operationId": "search_customers_v1_customers_get",
+        "parameters": [
+          {
+            "description": "Part of the first and last name.",
+            "in": "query",
+            "name": "name",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "maxLength": 64,
+                  "minLength": 2,
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Part of the first and last name.",
+              "title": "Name"
+            }
+          },
+          {
+            "in": "query",
+            "name": "cif_number",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "pattern": "^\\d{10}$",
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Cif Number"
+            }
+          },
+          {
+            "in": "query",
+            "name": "mobile_last4",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "pattern": "^\\d{4}$",
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Mobile Last4"
+            }
+          },
+          {
+            "in": "query",
+            "name": "limit",
+            "required": false,
+            "schema": {
+              "default": 20,
+              "maximum": 100,
+              "minimum": 1,
+              "title": "Limit",
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CustomerSearchResult"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "400": {
+            "description": "Invalid argument"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          },
+          "503": {
+            "description": "Database unavailable; retry shortly"
+          },
+          "504": {
+            "description": "Deadline exceeded"
+          }
+        },
+        "security": [
+          {
+            "GatewaySignature": []
+          }
+        ],
+        "summary": "Search Customers",
+        "tags": [
+          "customers"
+        ]
+      }
+    },
+    "/v1/customers/{customer_id}": {
+      "get": {
+        "description": "The Customer with the Addresses in force today.",
+        "operationId": "get_customer_v1_customers__customer_id__get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "customer_id",
+            "required": true,
+            "schema": {
+              "title": "Customer Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CustomerProfile"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "400": {
+            "description": "Invalid argument"
+          },
+          "404": {
+            "description": "No such Customer"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          },
+          "503": {
+            "description": "Database unavailable; retry shortly"
+          },
+          "504": {
+            "description": "Deadline exceeded"
+          }
+        },
+        "security": [
+          {
+            "GatewaySignature": []
+          }
+        ],
+        "summary": "Get a Customer's profile",
+        "tags": [
+          "customers"
+        ]
+      }
+    },
+    "/v1/transactions/{txn_id}": {
+      "get": {
+        "description": "The Transaction, its device and location, and every status it passed through.",
+        "operationId": "get_transaction_v1_transactions__txn_id__get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "txn_id",
+            "required": true,
+            "schema": {
+              "title": "Txn Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TransactionDetail"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "400": {
+            "description": "Invalid argument"
+          },
+          "404": {
+            "description": "No such Transaction"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          },
+          "503": {
+            "description": "Database unavailable; retry shortly"
+          },
+          "504": {
+            "description": "Deadline exceeded"
+          }
+        },
+        "security": [
+          {
+            "GatewaySignature": []
+          }
+        ],
+        "summary": "Get a Transaction",
+        "tags": [
+          "transactions"
+        ]
+      }
+    }
+  }
+}

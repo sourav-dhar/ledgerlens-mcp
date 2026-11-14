@@ -147,10 +147,11 @@ Database invariants backing the code:
 
 | Concern | Approach |
 |---|---|
-| Pagination | Keyset on `(initiated_at DESC, txn_id DESC)`; the gateway wraps the position in a signed cursor |
-| Partition pruning | `initiated_at` range always present (defaulted to the last 90 days) so only relevant monthly partitions are scanned |
-| Text filter | `narration ILIKE` backed by a `pg_trgm` GIN index |
-| Page size | 1–100; the gateway also caps response bytes |
+| Pagination | Keyset on `(initiated_at DESC, txn_id DESC)`, served by `transactions_account_timeline_idx`. A page's `next` is its last row's position; the caller passes it back as `after_initiated_at` and `after_txn_id`. One extra row is fetched to know whether `next` exists, so no `count(*)` runs. The gateway wraps the position in a signed cursor |
+| Partition pruning | `initiated_from` is always present (defaulted to 90 days ago) so only relevant monthly partitions are scanned; the window is half-open, `[initiated_from, initiated_before)`, and spans at most 366 days |
+| Text filter | `narration ILIKE`, with the caller's `%` and `_` escaped, backed by a `pg_trgm` GIN index; at least 3 characters |
+| Page size | 1–100, default 25; the gateway also caps response bytes |
+| One Transaction | `GET /v1/transactions/{txn_id}` probes each partition's primary-key index once (the ID alone names no month); its status history is then read with the row's `initiated_at`, which prunes to one partition |
 | Aggregates (`/insights`) | `GROUP BY date_trunc('month', initiated_at), category` over the partitioned table |
 
 ## 7. OpenAPI

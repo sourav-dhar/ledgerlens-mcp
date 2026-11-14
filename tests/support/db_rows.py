@@ -98,6 +98,19 @@ def transaction(
     return values["txn_id"], values["initiated_at"]
 
 
+def vpa(db: psycopg.Connection, account_id: str, customer_id: str, **overrides: Any) -> str:
+    values: dict[str, Any] = {
+        "vpa_id": new_id(IdPrefix.VPA),
+        "customer_id": customer_id,
+        "account_id": account_id,
+        "vpa": f"user.{account_id[-8:].lower()}@kosha",
+        "status": "active",
+        "created_at": NOW,
+    } | overrides
+    insert(db, "core.vpas", values)
+    return values["vpa_id"]
+
+
 def status_change(db: psycopg.Connection, txn: tuple[str, datetime], **overrides: Any) -> str:
     values: dict[str, Any] = {
         "history_id": new_id(IdPrefix.TRANSACTION_STATUS_CHANGE),

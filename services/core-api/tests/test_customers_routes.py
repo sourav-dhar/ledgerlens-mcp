@@ -1,4 +1,4 @@
-"""Input is validated before the database is touched; the contract is a reviewed snapshot."""
+"""Customer input is validated before the database is touched."""
 
 from collections.abc import AsyncIterator
 
@@ -6,8 +6,6 @@ import pytest
 from httpx import ASGITransport, AsyncClient
 from pydantic import SecretStr
 from signed import TEST_KEY, SignedAs
-from syrupy.assertion import SnapshotAssertion
-from syrupy.extensions.json import JSONSnapshotExtension
 
 from core_api.app import create_app
 from core_api.settings import Settings
@@ -70,12 +68,3 @@ async def test_a_valid_request_without_a_database_is_unavailable(client: AsyncCl
     assert response.status_code == 503
     assert response.headers["Retry-After"] == "1"
     assert response.json()["error"]["code"] == "unavailable"
-
-
-async def test_the_openapi_contract_is_unchanged(
-    client: AsyncClient, snapshot: SnapshotAssertion
-) -> None:
-    document = (await client.get("/openapi.json")).json()
-    del document["info"]["version"]  # bumped by every release, not a contract change
-
-    assert document == snapshot(extension_class=JSONSnapshotExtension)
