@@ -4,6 +4,8 @@ from collections.abc import AsyncIterator
 
 import pytest
 from httpx import ASGITransport, AsyncClient
+from pydantic import SecretStr
+from signed import TEST_KEY, SignedAs
 from syrupy.assertion import SnapshotAssertion
 from syrupy.extensions.json import JSONSnapshotExtension
 
@@ -13,16 +15,16 @@ from kosha_domain.ids import IdPrefix, new_id
 
 pytestmark = pytest.mark.anyio
 
-STAFF = {"X-Kosha-Actor": "staff-0042"}
-
 
 @pytest.fixture
 async def client() -> AsyncIterator[AsyncClient]:
     """The app without a database: anything that reaches the database is unavailable."""
-    app = create_app(Settings())
+    app = create_app(Settings(internal_signing_keys=SecretStr(TEST_KEY)))
     async with (
         app.router.lifespan_context(app),
-        AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as c,
+        AsyncClient(
+            transport=ASGITransport(app=app), base_url="http://test", auth=SignedAs("staff-0042")
+        ) as c,
     ):
         yield c
 
@@ -31,14 +33,14 @@ async def client() -> AsyncIterator[AsyncClient]:
 async def test_a_malformed_customer_id_is_an_invalid_argument(
     client: AsyncClient, customer_id: str
 ) -> None:
-    response = await client.get(f"/v1/customers/{customer_id}", headers=STAFF)
+    response = await client.get(f"/v1/customers/{customer_id}")
 
     assert response.status_code == 400
     assert response.json()["error"]["code"] == "invalid_argument"
 
 
 async def test_a_search_needs_at_least_one_criterion(client: AsyncClient) -> None:
-    response = await client.get("/v1/customers", headers=STAFF)
+    response = await client.get("/v1/customers")
 
     assert response.status_code == 400
     assert response.json()["error"]["code"] == "invalid_argument"
@@ -57,19 +59,13 @@ async def test_a_search_needs_at_least_one_criterion(client: AsyncClient) -> Non
 async def test_malformed_search_criteria_are_rejected(
     client: AsyncClient, params: dict[str, str | int]
 ) -> None:
-    response = await client.get("/v1/customers", params=params, headers=STAFF)
-
-    assert response.status_code == 422
-
-
-async def test_every_request_names_its_actor(client: AsyncClient) -> None:
-    response = await client.get(f"/v1/customers/{new_id(IdPrefix.CUSTOMER)}")
+    response = await client.get("/v1/customers", params=params)
 
     assert response.status_code == 422
 
 
 async def test_a_valid_request_without_a_database_is_unavailable(client: AsyncClient) -> None:
-    response = await client.get(f"/v1/customers/{new_id(IdPrefix.CUSTOMER)}", headers=STAFF)
+    response = await client.get(f"/v1/customers/{new_id(IdPrefix.CUSTOMER)}")
 
     assert response.status_code == 503
     assert response.headers["Retry-After"] == "1"

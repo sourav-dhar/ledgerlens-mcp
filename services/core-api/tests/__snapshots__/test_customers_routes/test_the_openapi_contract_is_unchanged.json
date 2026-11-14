@@ -104,17 +104,6 @@
         "title": "AddressType",
         "type": "string"
       },
-      "Classification": {
-        "description": "How sensitive a Document is, from least to most (see GLOSSARY: Classification).\n\nDeclaration order is significant: the database enum keeps it, and row-level security\nlets a caller read chunks at or below their ceiling.",
-        "enum": [
-          "public",
-          "internal",
-          "confidential",
-          "restricted"
-        ],
-        "title": "Classification",
-        "type": "string"
-      },
       "CustomerProfile": {
         "properties": {
           "addresses": {
@@ -537,6 +526,14 @@
         "title": "ValidationError",
         "type": "object"
       }
+    },
+    "securitySchemes": {
+      "GatewaySignature": {
+        "description": "`v1=` and a hex HMAC-SHA256 by the gateway over the method, target, body, `X-Kosha-Timestamp`, `X-Kosha-Actor` and `X-Kosha-Kb-Ceiling` headers (ADR 0013).",
+        "in": "header",
+        "name": "X-Kosha-Signature",
+        "type": "apiKey"
+      }
     }
   },
   "info": {
@@ -668,37 +665,6 @@
               "title": "Limit",
               "type": "integer"
             }
-          },
-          {
-            "description": "The principal the gateway verified (its `sub`).",
-            "in": "header",
-            "name": "x-kosha-actor",
-            "required": true,
-            "schema": {
-              "description": "The principal the gateway verified (its `sub`).",
-              "maxLength": 128,
-              "minLength": 1,
-              "title": "X-Kosha-Actor",
-              "type": "string"
-            }
-          },
-          {
-            "description": "Highest knowledge-base classification the principal may read.",
-            "in": "header",
-            "name": "x-kosha-kb-ceiling",
-            "required": false,
-            "schema": {
-              "anyOf": [
-                {
-                  "$ref": "#/components/schemas/Classification"
-                },
-                {
-                  "type": "null"
-                }
-              ],
-              "description": "Highest knowledge-base classification the principal may read.",
-              "title": "X-Kosha-Kb-Ceiling"
-            }
           }
         ],
         "responses": {
@@ -732,6 +698,11 @@
             "description": "Deadline exceeded"
           }
         },
+        "security": [
+          {
+            "GatewaySignature": []
+          }
+        ],
         "summary": "Search Customers",
         "tags": [
           "customers"
@@ -750,37 +721,6 @@
             "schema": {
               "title": "Customer Id",
               "type": "string"
-            }
-          },
-          {
-            "description": "The principal the gateway verified (its `sub`).",
-            "in": "header",
-            "name": "x-kosha-actor",
-            "required": true,
-            "schema": {
-              "description": "The principal the gateway verified (its `sub`).",
-              "maxLength": 128,
-              "minLength": 1,
-              "title": "X-Kosha-Actor",
-              "type": "string"
-            }
-          },
-          {
-            "description": "Highest knowledge-base classification the principal may read.",
-            "in": "header",
-            "name": "x-kosha-kb-ceiling",
-            "required": false,
-            "schema": {
-              "anyOf": [
-                {
-                  "$ref": "#/components/schemas/Classification"
-                },
-                {
-                  "type": "null"
-                }
-              ],
-              "description": "Highest knowledge-base classification the principal may read.",
-              "title": "X-Kosha-Kb-Ceiling"
             }
           }
         ],
@@ -818,6 +758,11 @@
             "description": "Deadline exceeded"
           }
         },
+        "security": [
+          {
+            "GatewaySignature": []
+          }
+        ],
         "summary": "Get a Customer's profile",
         "tags": [
           "customers"

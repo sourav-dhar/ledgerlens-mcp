@@ -61,11 +61,20 @@ flowchart LR
 |---|---|---|
 | Human via MCP client | Cognito authorization code + PKCE via FastMCP OAuth proxy | Scopes from Cognito group (role) |
 | Service-to-service (agents in CI, e2e tests) | Cognito client credentials | Scopes fixed on the app client |
-| `mcp-gateway` → `core-api` | Private network + shared service token from Secrets Manager (Proposed (to validate in P6): IAM-signed requests via API Gateway private integration) | Full internal API |
+| `mcp-gateway` → `core-api` | Private network + HMAC-signed requests keyed by a shared secret from Secrets Manager ([ADR 0013](../../adr/0013-gateway-signs-internal-requests-with-hmac.md)); IAM SigV4 via an API Gateway private integration remains the P6 candidate | Full internal API |
 | Lambdas → AWS services | Execution roles, least privilege, generated from CDK grants | Per-function |
 | GitHub Actions → AWS | OIDC federation, role trust restricted to `repo:<owner>/ledgerlens-mcp:environment:<env>` | Deploy only |
 
 The gateway forwards the verified principal to `core-api` in signed internal headers; `core-api` sets `kosha.actor` and `kosha.kb_ceiling` per transaction.
+
+| Header | Carries |
+|---|---|
+| `X-Kosha-Actor` | The principal's `sub` |
+| `X-Kosha-Kb-Ceiling` | Highest knowledge-base classification the principal may read (absent: none) |
+| `X-Kosha-Timestamp` | Unix seconds; `core-api` accepts ±60 s |
+| `X-Kosha-Signature` | `v1=` + hex HMAC-SHA256 over `kosha-v1`, timestamp, method, target, actor, ceiling and SHA-256 of the body, newline-joined |
+
+A missing, stale or wrong signature answers `401 unauthenticated`; so does every `/v1` route when `INTERNAL_SIGNING_KEYS` is unset.
 
 ## 4. Secrets and encryption
 
@@ -73,7 +82,7 @@ The gateway forwards the verified principal to `core-api` in signed internal hea
 |---|---|---|
 | OpenAI API key | Secrets Manager | Manual, documented runbook |
 | Database credentials | Secrets Manager (RDS-managed) | Automatic rotation |
-| Cursor HMAC key, chaos HMAC key, service token | Secrets Manager | Dual-key verification window during rotation |
+| Cursor HMAC key, chaos HMAC key, internal signing key | Secrets Manager | Dual-key verification window during rotation (`INTERNAL_SIGNING_KEYS=new,old`) |
 | PAN | KMS envelope encryption | Data key per record, key policy limits decrypt to `core-api` role |
 | Data at rest | RDS storage encryption, S3 SSE, SQS SSE, DynamoDB encryption | AWS-managed keys |
 | Data in transit | TLS everywhere; `sslmode=verify-full` to RDS | |

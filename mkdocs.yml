@@ -109,6 +109,7 @@ nav:
       - 0010 CodeDeploy canaries: adr/0010-codedeploy-canary-from-github-actions.md
       - 0011 Composite FKs to transactions: adr/0011-composite-foreign-keys-to-partitioned-transactions.md
       - 0012 Opening balances GL: adr/0012-opening-balances-gl-for-balances-brought-forward.md
+      - 0013 Signed internal requests: adr/0013-gateway-signs-internal-requests-with-hmac.md
   - Plans:
       - plans/CHANGELOG.md
       - v1.0 Architecture: plans/v1.0-architecture.md

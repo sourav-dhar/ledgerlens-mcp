@@ -16,3 +16,4 @@ Each record captures a decision that is hard to reverse, would surprise a newcom
 | [0010](0010-codedeploy-canary-from-github-actions.md) | Deploy with GitHub Actions and CodeDeploy canaries, not CodePipeline |
 | [0011](0011-composite-foreign-keys-to-partitioned-transactions.md) | Rows that reference a Transaction carry its `initiated_at` in a composite foreign key |
 | [0012](0012-opening-balances-gl-for-balances-brought-forward.md) | Balances older than the ledger are brought forward against an `opening_balances` GL account |
+| [0013](0013-gateway-signs-internal-requests-with-hmac.md) | The gateway signs its requests to `core-api` with an HMAC over the request and the principal |
