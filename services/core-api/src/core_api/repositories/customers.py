@@ -5,6 +5,7 @@ from dataclasses import dataclass
 from psycopg import sql
 
 from core_api.db import Connection
+from core_api.repositories.patterns import contains
 from core_api.schemas.customers import Address, CustomerProfile, CustomerSummary
 
 _PROFILE = """
@@ -50,12 +51,6 @@ class CustomerSearch:
         return self.name is None and self.cif_number is None and self.mobile_last4 is None
 
 
-def _contains(term: str) -> str:
-    """An ILIKE pattern matching ``term`` anywhere, with its own wildcards made literal."""
-    escaped = term.replace("\\", "\\\\").replace("%", "\\%").replace("_", "\\_")
-    return f"%{escaped}%"
-
-
 class CustomerRepository:
     def __init__(self, conn: Connection) -> None:
         self._conn = conn
@@ -75,7 +70,7 @@ class CustomerRepository:
         if criteria.name is not None:
             # Served by the trigram index customers_name_trgm_idx.
             conditions.append(sql.SQL("(first_name || ' ' || last_name) ILIKE %(name)s"))
-            params["name"] = _contains(criteria.name)
+            params["name"] = contains(criteria.name)
         if criteria.cif_number is not None:
             conditions.append(sql.SQL("cif_number = %(cif_number)s"))
             params["cif_number"] = criteria.cif_number

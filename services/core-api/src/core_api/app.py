@@ -9,7 +9,9 @@ from core_api import __version__
 from core_api.db import Database
 from core_api.errors import install_error_handlers
 from core_api.health import router as health_router
+from core_api.routers.accounts import router as accounts_router
 from core_api.routers.customers import router as customers_router
+from core_api.routers.transactions import router as transactions_router
 from core_api.settings import Settings
 
 
@@ -36,4 +38,6 @@ def create_app(settings: Settings | None = None) -> FastAPI:
     install_error_handlers(app)
     app.include_router(health_router)
     app.include_router(customers_router)
+    app.include_router(accounts_router)
+    app.include_router(transactions_router)
     return app

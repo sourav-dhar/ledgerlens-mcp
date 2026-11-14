@@ -4,11 +4,11 @@ from typing import Annotated, Any
 
 from fastapi import APIRouter, Query
 
-from core_api.deps import CallerDep, DatabaseDep, require
+from core_api.deps import CallerDep, DatabaseDep, checked_id, require
 from core_api.errors import InvalidArgumentError, NotFoundError
 from core_api.repositories.customers import CustomerRepository, CustomerSearch
 from core_api.schemas.customers import CustomerProfile, CustomerSearchResult
-from kosha_domain.ids import IdPrefix, is_valid_id
+from kosha_domain.ids import IdPrefix
 
 router = APIRouter(prefix="/v1/customers", tags=["customers"])
 
@@ -51,9 +51,7 @@ async def get_customer(
     customer_id: str, caller: CallerDep, database: DatabaseDep
 ) -> CustomerProfile:
     """The Customer with the Addresses in force today."""
-    if not is_valid_id(customer_id, IdPrefix.CUSTOMER):
-        msg = f"{customer_id!r} is not a customer ID (cus_ followed by a ULID)"
-        raise InvalidArgumentError(msg)
+    checked_id(customer_id, IdPrefix.CUSTOMER, name="customer_id")
     async with require(database).unit_of_work(caller, read_only=True) as conn:
         profile = await CustomerRepository(conn).profile(customer_id)
     if profile is None:
