@@ -10,6 +10,7 @@ import psycopg
 import pytest
 from httpx import ASGITransport, AsyncClient
 from pydantic import SecretStr
+from signed import TEST_KEY, SignedAs
 
 from core_api.app import create_app
 from core_api.db import Database
@@ -42,7 +43,11 @@ def committed(api_database_url: str) -> Iterator[psycopg.Connection]:
 
 @pytest.fixture
 def api_settings(api_database_url: str) -> Settings:
-    return Settings(database_url=SecretStr(api_database_url), db_pool_timeout_s=0.5)
+    return Settings(
+        database_url=SecretStr(api_database_url),
+        internal_signing_keys=SecretStr(TEST_KEY),
+        db_pool_timeout_s=0.5,
+    )
 
 
 @pytest.fixture
@@ -64,7 +69,7 @@ async def api(api_settings: Settings) -> AsyncIterator[AsyncClient]:
         AsyncClient(
             transport=ASGITransport(app=app),
             base_url="http://test",
-            headers={"X-Kosha-Actor": "staff-0042"},
+            auth=SignedAs("staff-0042"),
         ) as client,
     ):
         yield client

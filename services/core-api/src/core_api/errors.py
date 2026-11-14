@@ -31,6 +31,13 @@ class InvalidArgumentError(ApiError):
     code = "invalid_argument"
 
 
+class UnauthenticatedError(ApiError):
+    """The request was not provably signed by the gateway (ADR 0013)."""
+
+    status_code = 401
+    code = "unauthenticated"
+
+
 class NotFoundError(ApiError):
     status_code = 404
     code = "not_found"

@@ -2,8 +2,10 @@
 
 from typing import Literal
 
-from pydantic import Field, SecretStr
+from pydantic import Field, SecretStr, field_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
+
+from kosha_domain.signing import MIN_KEY_BYTES
 
 
 class Settings(BaseSettings):
@@ -32,3 +34,29 @@ class Settings(BaseSettings):
     """How long a request waits for a connection before answering `503`."""
     db_statement_timeout_ms: int = Field(default=3_000, gt=0)
     """Server-side cap on any one statement; exceeding it answers `504`."""
+
+    internal_signing_keys: SecretStr | None = None
+    """Comma-separated keys the gateway signs requests with, current first (ADR 0013).
+
+    During a rotation it holds the new key and the previous one. Without it, every data
+    route answers `401`: the service fails closed.
+    """
+
+    @field_validator("internal_signing_keys")
+    @classmethod
+    def _keys_are_long_enough(cls, value: SecretStr | None) -> SecretStr | None:
+        if value is not None and any(
+            len(k.encode()) < MIN_KEY_BYTES for k in _split(value.get_secret_value())
+        ):
+            msg = f"each internal signing key must be at least {MIN_KEY_BYTES} bytes"
+            raise ValueError(msg)
+        return value
+
+    def signing_keys(self) -> tuple[bytes, ...]:
+        if self.internal_signing_keys is None:
+            return ()
+        return tuple(k.encode() for k in _split(self.internal_signing_keys.get_secret_value()))
+
+
+def _split(keys: str) -> list[str]:
+    return [k.strip() for k in keys.split(",") if k.strip()]

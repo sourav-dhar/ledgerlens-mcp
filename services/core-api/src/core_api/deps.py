@@ -1,12 +1,15 @@
 """Request dependencies shared by the routers."""
 
+import time
 from typing import Annotated
 
-from fastapi import Depends, Header, Request
+from fastapi import Depends, Request, Security
+from fastapi.security import APIKeyHeader
 
 from core_api.db import Caller, Database
-from core_api.errors import UnavailableError
-from kosha_domain.vocabulary import Classification
+from core_api.errors import UnauthenticatedError, UnavailableError
+from core_api.settings import Settings
+from kosha_domain.signing import ACTOR, KB_CEILING, SIGNATURE, TIMESTAMP, SignatureError, verify
 
 
 def _database(request: Request) -> Database | None:
@@ -25,27 +28,42 @@ def require(database: Database | None) -> Database:
     return database
 
 
-def _caller(
-    x_kosha_actor: Annotated[
-        str,
-        Header(
-            min_length=1,
-            max_length=128,
-            description="The principal the gateway verified (its `sub`).",
-        ),
-    ],
-    x_kosha_kb_ceiling: Annotated[
-        Classification | None,
-        Header(description="Highest knowledge-base classification the principal may read."),
-    ] = None,
-) -> Caller:
-    """The principal the gateway forwards with each request.
+# Declared for the OpenAPI document; ``_caller`` reads and verifies the headers itself.
+_signed_by_gateway = APIKeyHeader(
+    name=SIGNATURE,
+    scheme_name="GatewaySignature",
+    description=(
+        f"`v1=` and a hex HMAC-SHA256 by the gateway over the method, target, body, "
+        f"`{TIMESTAMP}`, `{ACTOR}` and `{KB_CEILING}` headers (ADR 0013)."
+    ),
+    auto_error=False,
+)
 
-    The gateway is the only client and reaches ``core-api`` over the private network
-    (LLD security §3); authenticating these headers with the service token is a separate
-    step, to land before the first deployment.
-    """
-    return Caller(actor=x_kosha_actor, kb_ceiling=x_kosha_kb_ceiling)
+
+def _target(request: Request) -> str:
+    """The path and query as the client sent them, which is what the gateway signed."""
+    raw_path: bytes = request.scope.get("raw_path") or request.url.path.encode()
+    query: bytes = request.scope.get("query_string", b"")
+    return (raw_path + b"?" + query if query else raw_path).decode("latin-1")
+
+
+async def _caller(
+    request: Request, _signature: Annotated[str | None, Security(_signed_by_gateway)]
+) -> Caller:
+    """The principal the gateway authenticated, proven by the request's signature."""
+    settings: Settings = request.app.state.settings
+    try:
+        principal = verify(
+            settings.signing_keys(),
+            request.method,
+            _target(request),
+            await request.body(),
+            request.headers,
+            now=int(time.time()),
+        )
+    except SignatureError as exc:
+        raise UnauthenticatedError(str(exc)) from None
+    return Caller(actor=principal.actor, kb_ceiling=principal.kb_ceiling)
 
 
 DatabaseDep = Annotated[Database | None, Depends(_database)]

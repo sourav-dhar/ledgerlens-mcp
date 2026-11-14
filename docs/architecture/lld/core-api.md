@@ -8,7 +8,7 @@
 services/core-api/src/core_api/
 ├── app.py                 # create_app(settings) -> FastAPI; lifespan opens the pool
 ├── settings.py
-├── deps.py                # Caller from the gateway's headers; the configured Database
+├── deps.py                # Caller from the gateway's signed headers (ADR 0013); Database
 ├── errors.py              # ApiError family, database-error mapping, one error body
 ├── health.py              # /healthz (liveness), /readyz (database at the shipped revision)
 ├── db/
@@ -63,7 +63,7 @@ Every unit of work opens with one statement that sets, transaction-locally (`set
 | `role` | `kosha_app` | Grants, `forbid_change()` and row-level security apply even when the login role is the owner (locally, a superuser) |
 | `transaction_read_only` | `on` for reads | A read route cannot write by mistake |
 | `statement_timeout` | `DB_STATEMENT_TIMEOUT_MS` (3 s) | A runaway query answers `504` instead of holding the connection |
-| `kosha.actor`, `kosha.kb_ceiling` | From the `X-Kosha-Actor` and `X-Kosha-Kb-Ceiling` headers | Audit and knowledge-base RLS; no ceiling means no KB rows |
+| `kosha.actor`, `kosha.kb_ceiling` | From the `X-Kosha-Actor` and `X-Kosha-Kb-Ceiling` headers, once their signature verifies (ADR 0013) | Audit and knowledge-base RLS; no ceiling means no KB rows |
 
 Because each setting ends with the transaction, a pooled connection never carries one caller's identity into another's request.
 
@@ -167,6 +167,7 @@ Errors share one body, `{"error": {"code": "...", "message": "..."}}`; `code` is
 |---|---|---|
 | `200` / `201` | | Success / created |
 | `400` | `invalid_argument` | Validation the schema cannot express (a malformed ID, no search criterion) |
+| `401` | `unauthenticated` | Missing, stale or wrong gateway signature, or no signing key configured (ADR 0013) |
 | `404` | `not_found` | Not found |
 | `409` | `conflict` | Idempotency conflict, illegal state transition (`check_violation` from a `*_lifecycle` trigger) or a change to append-only history (`restrict_violation`) |
 | `422` | | Reserved for FastAPI request parsing errors, mapped to `invalid_argument` by the gateway |
