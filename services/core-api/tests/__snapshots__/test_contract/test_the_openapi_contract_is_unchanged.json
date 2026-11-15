@@ -623,6 +623,126 @@
         "title": "Direction",
         "type": "string"
       },
+      "Dispute": {
+        "properties": {
+          "amount_paise": {
+            "title": "Amount Paise",
+            "type": "integer"
+          },
+          "compensation_paise": {
+            "title": "Compensation Paise",
+            "type": "integer"
+          },
+          "created_at": {
+            "format": "date-time",
+            "title": "Created At",
+            "type": "string"
+          },
+          "created_by": {
+            "title": "Created By",
+            "type": "string"
+          },
+          "customer_id": {
+            "title": "Customer Id",
+            "type": "string"
+          },
+          "dispute_id": {
+            "title": "Dispute Id",
+            "type": "string"
+          },
+          "reason_code": {
+            "$ref": "#/components/schemas/DisputeReason"
+          },
+          "status": {
+            "$ref": "#/components/schemas/DisputeStatus"
+          },
+          "tat_due_at": {
+            "format": "date-time",
+            "title": "Tat Due At",
+            "type": "string"
+          },
+          "txn_id": {
+            "title": "Txn Id",
+            "type": "string"
+          },
+          "txn_initiated_at": {
+            "format": "date-time",
+            "title": "Txn Initiated At",
+            "type": "string"
+          }
+        },
+        "required": [
+          "dispute_id",
+          "txn_id",
+          "txn_initiated_at",
+          "customer_id",
+          "reason_code",
+          "amount_paise",
+          "status",
+          "tat_due_at",
+          "compensation_paise",
+          "created_by",
+          "created_at"
+        ],
+        "title": "Dispute",
+        "type": "object"
+      },
+      "DisputeReason": {
+        "enum": [
+          "unauthorised",
+          "goods_not_received",
+          "duplicate",
+          "amount_mismatch",
+          "failed_but_debited",
+          "credit_not_received"
+        ],
+        "title": "DisputeReason",
+        "type": "string"
+      },
+      "DisputeStatus": {
+        "enum": [
+          "raised",
+          "acknowledged",
+          "awaiting_customer_info",
+          "under_investigation",
+          "on_hold",
+          "chargeback_raised",
+          "pre_arbitration",
+          "arbitration",
+          "resolved_customer_favour",
+          "resolved_merchant_favour",
+          "auto_reversed",
+          "withdrawn",
+          "closed"
+        ],
+        "title": "DisputeStatus",
+        "type": "string"
+      },
+      "FlagTransaction": {
+        "additionalProperties": false,
+        "properties": {
+          "priority": {
+            "$ref": "#/components/schemas/ReviewPriority",
+            "default": "normal"
+          },
+          "reason": {
+            "maxLength": 500,
+            "minLength": 3,
+            "title": "Reason",
+            "type": "string"
+          },
+          "txn_id": {
+            "title": "Txn Id",
+            "type": "string"
+          }
+        },
+        "required": [
+          "txn_id",
+          "reason"
+        ],
+        "title": "FlagTransaction",
+        "type": "object"
+      },
       "Gender": {
         "description": "Gender as recorded on Indian KYC documents.",
         "enum": [
@@ -1184,6 +1304,37 @@
         "title": "Rail",
         "type": "string"
       },
+      "RaiseDispute": {
+        "additionalProperties": false,
+        "properties": {
+          "amount_paise": {
+            "anyOf": [
+              {
+                "exclusiveMinimum": 0.0,
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "The disputed part; defaults to the whole Transaction.",
+            "title": "Amount Paise"
+          },
+          "reason_code": {
+            "$ref": "#/components/schemas/DisputeReason"
+          },
+          "txn_id": {
+            "title": "Txn Id",
+            "type": "string"
+          }
+        },
+        "required": [
+          "txn_id",
+          "reason_code"
+        ],
+        "title": "RaiseDispute",
+        "type": "object"
+      },
       "Readiness": {
         "properties": {
           "schema_revision": {
@@ -1229,6 +1380,16 @@
           "nri"
         ],
         "title": "ResidentialStatus",
+        "type": "string"
+      },
+      "ReviewPriority": {
+        "enum": [
+          "low",
+          "normal",
+          "high",
+          "urgent"
+        ],
+        "title": "ReviewPriority",
         "type": "string"
       },
       "RiskCategory": {
@@ -1978,6 +2139,66 @@
         ],
         "title": "TransactionPage",
         "type": "object"
+      },
+      "TransactionReview": {
+        "properties": {
+          "created_at": {
+            "format": "date-time",
+            "title": "Created At",
+            "type": "string"
+          },
+          "created_by": {
+            "title": "Created By",
+            "type": "string"
+          },
+          "priority": {
+            "$ref": "#/components/schemas/ReviewPriority"
+          },
+          "reason": {
+            "title": "Reason",
+            "type": "string"
+          },
+          "review_id": {
+            "title": "Review Id",
+            "type": "string"
+          },
+          "status": {
+            "$ref": "#/components/schemas/TransactionReviewStatus"
+          },
+          "txn_id": {
+            "title": "Txn Id",
+            "type": "string"
+          },
+          "txn_initiated_at": {
+            "format": "date-time",
+            "title": "Txn Initiated At",
+            "type": "string"
+          }
+        },
+        "required": [
+          "review_id",
+          "txn_id",
+          "txn_initiated_at",
+          "reason",
+          "priority",
+          "status",
+          "created_by",
+          "created_at"
+        ],
+        "title": "TransactionReview",
+        "type": "object"
+      },
+      "TransactionReviewStatus": {
+        "enum": [
+          "queued",
+          "in_review",
+          "on_hold",
+          "cleared",
+          "escalated_to_aml",
+          "blocked"
+        ],
+        "title": "TransactionReviewStatus",
+        "type": "string"
       },
       "TransactionStatus": {
         "enum": [
@@ -2782,6 +3003,164 @@
         "summary": "List a Customer's KYC documents",
         "tags": [
           "kyc"
+        ]
+      }
+    },
+    "/v1/disputes": {
+      "post": {
+        "description": "Open a dispute on a debit, due back by the rail's RBI turnaround time.",
+        "operationId": "raise_dispute_v1_disputes_post",
+        "parameters": [
+          {
+            "description": "Client-chosen, unique per intended write; a retry reuses it. Kept 24 h.",
+            "in": "header",
+            "name": "Idempotency-Key",
+            "required": true,
+            "schema": {
+              "description": "Client-chosen, unique per intended write; a retry reuses it. Kept 24 h.",
+              "pattern": "^[\\x21-\\x7e]{1,255}$",
+              "title": "Idempotency-Key",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RaiseDispute"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Replay: the stored response to an earlier request with this key"
+          },
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Dispute"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "400": {
+            "description": "Invalid argument"
+          },
+          "404": {
+            "description": "No such Transaction"
+          },
+          "409": {
+            "description": "Key reused for a different request, or the Transaction's state forbids it"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          },
+          "503": {
+            "description": "Database unavailable; retry shortly with the same key"
+          },
+          "504": {
+            "description": "Deadline exceeded; retry with the same key"
+          }
+        },
+        "security": [
+          {
+            "GatewaySignature": []
+          }
+        ],
+        "summary": "Raise a dispute",
+        "tags": [
+          "cases"
+        ]
+      }
+    },
+    "/v1/reviews": {
+      "post": {
+        "description": "Queue a review, mark the Transaction flagged, and tell the review queue.",
+        "operationId": "flag_transaction_v1_reviews_post",
+        "parameters": [
+          {
+            "description": "Client-chosen, unique per intended write; a retry reuses it. Kept 24 h.",
+            "in": "header",
+            "name": "Idempotency-Key",
+            "required": true,
+            "schema": {
+              "description": "Client-chosen, unique per intended write; a retry reuses it. Kept 24 h.",
+              "pattern": "^[\\x21-\\x7e]{1,255}$",
+              "title": "Idempotency-Key",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/FlagTransaction"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Replay: the stored response to an earlier request with this key"
+          },
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TransactionReview"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "400": {
+            "description": "Invalid argument"
+          },
+          "404": {
+            "description": "No such Transaction"
+          },
+          "409": {
+            "description": "Key reused for a different request, or the Transaction's state forbids it"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          },
+          "503": {
+            "description": "Database unavailable; retry shortly with the same key"
+          },
+          "504": {
+            "description": "Deadline exceeded; retry with the same key"
+          }
+        },
+        "security": [
+          {
+            "GatewaySignature": []
+          }
+        ],
+        "summary": "Flag a Transaction for review",
+        "tags": [
+          "cases"
         ]
       }
     },
