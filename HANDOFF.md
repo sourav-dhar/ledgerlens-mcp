@@ -2,7 +2,7 @@
 
 > Read at the start of every session; rewrite at the end of every session. Durable lessons go to [MEMORY.md](MEMORY.md), standing rules to [CLAUDE.md](CLAUDE.md).
 
-**Last updated:** 2026-11-15 · **Current release:** v0.2.0 (v0.3.0 pending in #3) · **Phase in progress:** P2 Core Banking API · **Next:** KYC reads, then the dispute and review write routes
+**Last updated:** 2026-11-15 · **Current release:** v0.2.0 (v0.3.0 pending in #3) · **Phase in progress:** P2 Core Banking API · **Next:** KB search, audit log, PAN unmasking; then the P2 exit check
 
 ## Where things stand
 
@@ -13,15 +13,19 @@
   | #9 | `core_api.db` (pool + `unit_of_work`), error mapping, `/readyz` at the shipped Alembic head, `GET /v1/customers` and `/v1/customers/{id}` |
   | #10 | Gateway-signed internal requests ([ADR 0013](docs/adr/0013-gateway-signs-internal-requests-with-hmac.md)): `kosha_domain.signing`, `401 unauthenticated`, fail closed without `INTERNAL_SIGNING_KEYS` |
   | #11 | `GET /v1/accounts/{id}`, keyset-paged `GET /v1/accounts/{id}/transactions`, `GET /v1/transactions/{id}` with status history |
+  | #13 | `GET /v1/customers/{id}/kyc` (newest profile + events; PAN and Aadhaar as last 4 only) and `.../kyc/documents` (metadata only) |
+  | #14 | `POST /v1/disputes`, `POST /v1/reviews`: idempotency key → `FOR UPDATE` lock → rules → case row + outbox event → stored response, one transaction (`services/idempotency.py`, `services/cases.py`); dispute rules in `kosha_domain.disputes` |
+  | #15 | `GET /v1/aml/alerts` (SLA queue, keyset on `(sla_due_at, alert_id)`), `GET /v1/aml/alerts/{id}` (rule + cited Transactions), `GET /v1/accounts/{id}/insights` (Kolkata months, posted only, by category) |
 
-- **How a route is built** (copy this shape): validate IDs with `deps.checked_id` and cross-field rules in the handler (`400`), then `require(database).unit_of_work(caller, read_only=True)`, one repository call, `404` on `None`. SQL lives only in `repositories/`, response models in `schemas/`. Unit tests (`tests/test_*_routes.py`) cover validation against an app with no database (valid input answers `503`); integration tests (`tests/integration/test_*_api.py`) commit rows to the scratch database `kosha_api_test` and call the app through `SignedAs`.
+- **How a write is built:** `CaseService` wraps its work in `idempotent(...)`; refusals raise `ApiError`s inside the unit of work so the key rolls back too. Replays answer `200`, first writes `201`.
+- **How a read is built** (copy this shape): validate IDs with `deps.checked_id` and cross-field rules in the handler (`400`), then `require(database).unit_of_work(caller, read_only=True)`, one repository call, `404` on `None`. SQL lives only in `repositories/`, response models in `schemas/`. Unit tests (`tests/test_*_routes.py`) cover validation against an app with no database (valid input answers `503`); integration tests (`tests/integration/test_*_api.py`) commit rows to the scratch database `kosha_api_test` and call the app through `SignedAs`.
 - **Every unit of work** runs as `kosha_app` with `transaction_read_only`, `statement_timeout`, `kosha.actor` and `kosha.kb_ceiling` set in one `set_config` round trip; all transaction-local.
 - **Contract:** `tests/test_contract.py` snapshots the OpenAPI document (`syrupy`). A route change is an intended snapshot diff: run with `--snapshot-update`, then convert the file to LF (syrupy writes CRLF on Windows).
 - `/readyz` is `503` until the database is at Alembic head; the Lambda Web Adapter waits on `/healthz` instead.
 
 ### Verification status
 
-- Verified in CI (all 10 checks on each PR): 402 unit tests, the integration suite (database layer, customers, accounts, transactions) and the image smoke test.
+- Verified in CI (all 10 checks on each PR): 468 unit tests, the integration suite (database layer, every route, both write races) and the image smoke test.
 - **Not verified locally this session:** the integration tests. Docker Desktop was stopped to free memory, so CI was their only run.
 - **Still not verified: the full 5,000-Customer `poe seed`** (see Open items).
 
@@ -35,14 +39,15 @@
 | Errors | One body `{"error": {"code", "message"}}`; lifecycle and append-only refusals are `409`, pool and connection failures `503` with `Retry-After`, statement timeouts `504`, anything else `500` |
 | Paging | Keyset `(initiated_at, txn_id)` descending, `limit + 1` instead of `count(*)`, half-open window defaulting to 90 days and capped at 366 |
 | Database availability | Checked inside the handler (`require`), because a raising dependency would pre-empt FastAPI's `422`/`400` validation |
+| Disputes | Debits that moved money only; amount ≤ the Transaction's; one open dispute per Transaction; `tat_due_at` from RBI turnaround (T+1, T+5 for ATM and cards) |
+| Insights months | Kolkata calendar months, the one deliberate IST bucket in `core-api`; storage stays UTC |
 
-## Next session: KYC reads, then the write routes
+## Next session: finish P2
 
-Read first: core-api LLD §§3–4 (transaction boundaries, idempotency sequence), ADR 0007 (idempotency in the write transaction), ADR 0008 (outbox), and the `ops.*` tables in revision 0003.
-
-1. **KYC** (`/v1/customers/{id}/kyc`, documents): `get_kyc_status`, `list_kyc_documents`. PAN and Aadhaar stay tokens plus last 4; document bytes are never returned.
-2. **`POST /v1/disputes`** and **`POST /v1/reviews`**, each in one transaction: idempotency row (`ops.idempotency_keys`, `request_hash` = SHA-256 of canonical JSON plus the actor) → lock and check the Transaction → insert the business row → `ops.outbox` event → store the response. Replays return the stored response (`200`); a different hash or an in-progress key is `409`.
-3. Then AML alerts, insights, KB search and audit; each with its failure tests.
+1. **KB search** (`/v1/kb/search`, `/v1/kb/documents/{doc_code}`): read `docs/architecture/lld/rag-pipeline.md` first. The ceiling RLS on `kb.*` already works through `kosha.kb_ceiling`; P2 needs full-text search over `kb.chunks`, with vector search and RRF following in P5 once ingestion exists.
+2. **Audit** (`POST /v1/audit`): its own short transaction, never joined with business writes (LLD §3); `ops.audit_log` is append-only.
+3. **PAN unmasking** for `kyc:pii`: decide how the KMS decrypt is faked locally (likely a local key behind an interface, real KMS in P6), probably as an ADR.
+4. **P2 exit check** (plan §9: "All routes + failure tests green"): walk the plan §8 failure matrix against each route and fill any gaps, then close P2 in the README and plan.
 
 ## Open items
 
@@ -54,4 +59,4 @@ Read first: core-api LLD §§3–4 (transaction boundaries, idempotency sequence
 
 ## Suggested opening prompt for the next session
 
-> Continue LedgerLens P2 per HANDOFF.md: KYC reads, then the dispute and review write routes.
+> Continue LedgerLens P2 per HANDOFF.md: KB search, audit, PAN unmasking, then the P2 exit check.
