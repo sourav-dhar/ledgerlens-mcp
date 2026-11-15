@@ -4,6 +4,13 @@
 
 ## Lessons learned
 
+- **2026-11-14 — A dependency that raises pre-empts FastAPI validation.** FastAPI resolves dependencies before it reports invalid query parameters, so a "database configured?" dependency answered `503` to malformed input. Inject `Database | None` and check it inside the handler (`deps.require`).
+- **2026-11-14 — The Lambda Web Adapter's readiness check gates every cold start.** Pointing it at a readiness probe that checks the database would stop new instances starting during a database outage. The adapter waits on `/healthz`; `/readyz` is for orchestrators and humans.
+- **2026-11-14 — Async psycopg cannot run on the Windows Proactor loop.** The root `anyio_backend` fixture uses `asyncio.SelectorEventLoop` on `win32`; CI on Linux is unaffected.
+- **2026-11-14 — One `set_config` round trip sets a whole transaction context.** `role`, `transaction_read_only`, `statement_timeout` and custom `kosha.*` settings can all be set with `set_config(name, value, true)` in a single `SELECT`, after `BEGIN`; all of them end with the transaction.
+- **2026-11-14 — syrupy writes snapshots with CRLF on Windows.** The `mixed-line-ending` hook then rewrites them and fails the commit. Convert a regenerated snapshot to LF before staging it.
+- **2026-11-14 — Splitting a commit trips the whole-tree pyright hook.** pre-commit stashes unstaged changes to tracked files but leaves untracked files in place, so an untracked test that depends on an unstaged edit fails type-checking. Move such files aside for the first commit, or stage the helper they need.
+- **2026-11-14 — Scripted edits wrote CRLF again.** The `write_text` lesson below still applies to ad-hoc `python3 -` edits: use `read_bytes`/`write_bytes`.
 - **2026-11-12 — Per-row triggers dominated the bulk load.** Foreign-key checks into the partitioned `core.transactions` and the deferred balance triggers made `COPY` 11× slower (145 s against 13 s per 200 Customers) and the full seed about an hour. Benchmark with `session_replication_role = replica` before optimising anything else; if triggers are the cost, load without them and prove the same guarantees set-based afterwards (`kosha_datagen.reconcile`).
 - **2026-11-12 — Rupees leak into paise inside arithmetic, not at boundaries.** The generator computed take-home pay in rupees and passed it as paise, so salaries arrived as ₹307. Types cannot catch it (both are `int`); a distribution test (transactions per Customer by persona) did. Suffix intermediate variables with their unit too, and keep a volume test per persona.
 - **2026-11-12 — A dict keyed by status loses revisited statuses.** A held-then-cleared Transaction passes `processing` twice; keying timestamps by status silently dropped the first visit and broke history order. Status histories are ordered lists of `(status, at)`.
@@ -34,10 +41,12 @@
 
 ## Incidents
 
+- **2026-11-14 — Full seed stopped at about 600 Customers.** Docker's memory was needed for other work, and C: fell from 22 GB to 7 GB free in ten minutes while Postgres held 1.4 GB, so something outside this repo was writing to the drive. Remedy: check free space and other heavy jobs before a long run, and keep the seed for a time when the machine is otherwise idle.
 - **2026-11-12 — Workstation ran out of memory.** Three Docker jobs in parallel (Kroki, Mermaid CLI with Chromium, image previews) exhausted the commit limit and required a reboot. Remedy: WSL capped at 3 GB; heavy containers run sequentially and are stopped after use; browser-based checks use the installed Edge instead of containerised Chromium.
 
 ## Deferred
 
+- **Find a Transaction by ID without probing every partition.** `GET /v1/transactions/{id}` checks each monthly partition's primary-key index. If the generator and the write path guarantee that a `txn_` ULID's timestamp equals `initiated_at`, the month can be derived from the ID and the lookup pruned to one partition.
 - **Commit a Mermaid validation script.** Done ad hoc twice now (headless Edge + `mermaid.parse`); a `poe docs-check` task would make it repeatable and catch escaping slips in the throwaway page.
 - **Distroless runtime image** — removes apt/perl/shell CVE classes and shrinks the image; costs a rework of how the venv is copied and shell-less debugging. Candidate ADR.
 - **Image signing and SBOM attestation** (cosign / GitHub attestations) once images are pushed to ECR in P6.
