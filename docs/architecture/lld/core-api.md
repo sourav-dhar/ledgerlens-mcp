@@ -112,7 +112,18 @@ sequenceDiagram
 
 *Notice: the idempotency record, the business row and the outbox event commit or roll back together, so a crash can never leave one without the others.*
 
-`request_hash` is SHA-256 over the canonical JSON of the payload plus the actor's `sub`. Keys expire after 24 hours (cleaned by a scheduled job).
+`request_hash` is SHA-256 over the canonical JSON of the payload plus the actor's `sub`, so the same key sent by another caller is a conflict too. Keys are scoped by operation (`raise_dispute`, `flag_transaction`) and expire after 24 hours (cleaned by a scheduled job); an expired key may be claimed again by the same `INSERT ... ON CONFLICT DO UPDATE ... WHERE expires_at <= now()`.
+
+A concurrent duplicate never reaches the `in_progress` branch in practice: its insert waits on the first request's uncommitted key, then finds it completed and replays it. A refused request (`400`, `404`, `409`) rolls back its key with everything else, so the client can correct the request and retry with the same key.
+
+After the key is claimed, the Transaction is locked `FOR UPDATE`, so two writes about one Transaction run one after the other and the second sees what the first decided:
+
+| Write | Rules |
+|---|---|
+| `POST /v1/disputes` | Only a debit that moved money (`kosha_domain.disputes.is_disputable`: not in flight, not declined, cancelled or expired); amount ≤ the Transaction's; no other open dispute on it; `tat_due_at` = `initiated_at` + the rail's RBI turnaround (T+1, or T+5 for ATM and cards); emits `DisputeRaised` |
+| `POST /v1/reviews` | No other open review on it; sets `is_flagged`; emits `TransactionFlagged` |
+
+The first response is `201`; a replay is `200` with the stored body.
 
 ## 5. Ledger posting algorithm
 
