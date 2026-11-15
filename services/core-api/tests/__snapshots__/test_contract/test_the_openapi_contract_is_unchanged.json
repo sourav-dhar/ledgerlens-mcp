@@ -269,6 +269,297 @@
         "title": "AddressType",
         "type": "string"
       },
+      "AmlAlert": {
+        "properties": {
+          "alert_id": {
+            "title": "Alert Id",
+            "type": "string"
+          },
+          "assigned_to": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Assigned To"
+          },
+          "closed_at": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Closed At"
+          },
+          "created_at": {
+            "format": "date-time",
+            "title": "Created At",
+            "type": "string"
+          },
+          "customer_id": {
+            "title": "Customer Id",
+            "type": "string"
+          },
+          "disposition": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Disposition"
+          },
+          "narrative": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Narrative"
+          },
+          "rule": {
+            "$ref": "#/components/schemas/AmlRule"
+          },
+          "rule_id": {
+            "title": "Rule Id",
+            "type": "string"
+          },
+          "rule_name": {
+            "title": "Rule Name",
+            "type": "string"
+          },
+          "score": {
+            "title": "Score",
+            "type": "number"
+          },
+          "severity": {
+            "$ref": "#/components/schemas/Severity"
+          },
+          "sla_due_at": {
+            "format": "date-time",
+            "title": "Sla Due At",
+            "type": "string"
+          },
+          "status": {
+            "$ref": "#/components/schemas/AmlAlertStatus"
+          },
+          "str_reference": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Str Reference"
+          },
+          "triggering_transactions": {
+            "items": {
+              "$ref": "#/components/schemas/Transaction"
+            },
+            "title": "Triggering Transactions",
+            "type": "array"
+          },
+          "typology": {
+            "$ref": "#/components/schemas/Typology"
+          }
+        },
+        "required": [
+          "alert_id",
+          "customer_id",
+          "rule_id",
+          "rule_name",
+          "typology",
+          "severity",
+          "score",
+          "status",
+          "assigned_to",
+          "sla_due_at",
+          "created_at",
+          "closed_at",
+          "narrative",
+          "disposition",
+          "str_reference",
+          "rule",
+          "triggering_transactions"
+        ],
+        "title": "AmlAlert",
+        "type": "object"
+      },
+      "AmlAlertPage": {
+        "properties": {
+          "items": {
+            "items": {
+              "$ref": "#/components/schemas/AmlAlertSummary"
+            },
+            "title": "Items",
+            "type": "array"
+          },
+          "next": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/QueuePosition"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          }
+        },
+        "required": [
+          "items",
+          "next"
+        ],
+        "title": "AmlAlertPage",
+        "type": "object"
+      },
+      "AmlAlertStatus": {
+        "enum": [
+          "open",
+          "assigned",
+          "in_review",
+          "pending_info",
+          "on_hold",
+          "escalated",
+          "closed_false_positive",
+          "closed_no_action",
+          "closed_str_filed"
+        ],
+        "title": "AmlAlertStatus",
+        "type": "string"
+      },
+      "AmlAlertSummary": {
+        "properties": {
+          "alert_id": {
+            "title": "Alert Id",
+            "type": "string"
+          },
+          "assigned_to": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Assigned To"
+          },
+          "closed_at": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Closed At"
+          },
+          "created_at": {
+            "format": "date-time",
+            "title": "Created At",
+            "type": "string"
+          },
+          "customer_id": {
+            "title": "Customer Id",
+            "type": "string"
+          },
+          "rule_id": {
+            "title": "Rule Id",
+            "type": "string"
+          },
+          "rule_name": {
+            "title": "Rule Name",
+            "type": "string"
+          },
+          "score": {
+            "title": "Score",
+            "type": "number"
+          },
+          "severity": {
+            "$ref": "#/components/schemas/Severity"
+          },
+          "sla_due_at": {
+            "format": "date-time",
+            "title": "Sla Due At",
+            "type": "string"
+          },
+          "status": {
+            "$ref": "#/components/schemas/AmlAlertStatus"
+          },
+          "typology": {
+            "$ref": "#/components/schemas/Typology"
+          }
+        },
+        "required": [
+          "alert_id",
+          "customer_id",
+          "rule_id",
+          "rule_name",
+          "typology",
+          "severity",
+          "score",
+          "status",
+          "assigned_to",
+          "sla_due_at",
+          "created_at",
+          "closed_at"
+        ],
+        "title": "AmlAlertSummary",
+        "type": "object"
+      },
+      "AmlRule": {
+        "properties": {
+          "enabled": {
+            "title": "Enabled",
+            "type": "boolean"
+          },
+          "name": {
+            "title": "Name",
+            "type": "string"
+          },
+          "params": {
+            "additionalProperties": true,
+            "title": "Params",
+            "type": "object"
+          },
+          "rule_id": {
+            "title": "Rule Id",
+            "type": "string"
+          },
+          "severity": {
+            "$ref": "#/components/schemas/Severity"
+          },
+          "typology": {
+            "$ref": "#/components/schemas/Typology"
+          }
+        },
+        "required": [
+          "rule_id",
+          "name",
+          "typology",
+          "severity",
+          "params",
+          "enabled"
+        ],
+        "title": "AmlRule",
+        "type": "object"
+      },
       "Card": {
         "properties": {
           "atm_limit_paise": {
@@ -371,6 +662,29 @@
         ],
         "title": "CardType",
         "type": "string"
+      },
+      "CategorySpend": {
+        "properties": {
+          "category": {
+            "title": "Category",
+            "type": "string"
+          },
+          "debits_paise": {
+            "title": "Debits Paise",
+            "type": "integer"
+          },
+          "transactions": {
+            "title": "Transactions",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "category",
+          "debits_paise",
+          "transactions"
+        ],
+        "title": "CategorySpend",
+        "type": "object"
       },
       "Channel": {
         "description": "The touchpoint where a Transaction was initiated (see GLOSSARY: Channel).",
@@ -1232,6 +1546,37 @@
         "title": "ModeOfOperation",
         "type": "string"
       },
+      "MonthlySpend": {
+        "properties": {
+          "categories": {
+            "items": {
+              "$ref": "#/components/schemas/CategorySpend"
+            },
+            "title": "Categories",
+            "type": "array"
+          },
+          "credits_paise": {
+            "title": "Credits Paise",
+            "type": "integer"
+          },
+          "debits_paise": {
+            "title": "Debits Paise",
+            "type": "integer"
+          },
+          "month": {
+            "title": "Month",
+            "type": "string"
+          }
+        },
+        "required": [
+          "month",
+          "credits_paise",
+          "debits_paise",
+          "categories"
+        ],
+        "title": "MonthlySpend",
+        "type": "object"
+      },
       "OnboardingChannel": {
         "description": "Where a Customer's relationship began.",
         "enum": [
@@ -1287,6 +1632,26 @@
         ],
         "title": "ProductCode",
         "type": "string"
+      },
+      "QueuePosition": {
+        "description": "The last alert of a page; pass it back as ``after_*`` to read the next one.",
+        "properties": {
+          "alert_id": {
+            "title": "Alert Id",
+            "type": "string"
+          },
+          "sla_due_at": {
+            "format": "date-time",
+            "title": "Sla Due At",
+            "type": "string"
+          }
+        },
+        "required": [
+          "sla_due_at",
+          "alert_id"
+        ],
+        "title": "QueuePosition",
+        "type": "object"
       },
       "Rail": {
         "description": "The payment network a Transaction travels on (see GLOSSARY: Rail).",
@@ -1411,6 +1776,37 @@
         ],
         "title": "Segment",
         "type": "string"
+      },
+      "Severity": {
+        "enum": [
+          "low",
+          "medium",
+          "high",
+          "critical"
+        ],
+        "title": "Severity",
+        "type": "string"
+      },
+      "SpendingInsights": {
+        "properties": {
+          "account_id": {
+            "title": "Account Id",
+            "type": "string"
+          },
+          "months": {
+            "items": {
+              "$ref": "#/components/schemas/MonthlySpend"
+            },
+            "title": "Months",
+            "type": "array"
+          }
+        },
+        "required": [
+          "account_id",
+          "months"
+        ],
+        "title": "SpendingInsights",
+        "type": "object"
       },
       "StatusChange": {
         "properties": {
@@ -2246,6 +2642,20 @@
         "title": "TransactionType",
         "type": "string"
       },
+      "Typology": {
+        "description": "A recognised money-laundering or fraud pattern (see GLOSSARY: Typology).",
+        "enum": [
+          "structuring",
+          "rapid_movement",
+          "mule_account",
+          "round_tripping",
+          "dormant_reactivation",
+          "high_risk_geo",
+          "velocity"
+        ],
+        "title": "Typology",
+        "type": "string"
+      },
       "ValidationError": {
         "properties": {
           "ctx": {
@@ -2454,6 +2864,80 @@
         "summary": "Get an Account's summary",
         "tags": [
           "accounts"
+        ]
+      }
+    },
+    "/v1/accounts/{account_id}/insights": {
+      "get": {
+        "description": "Credits, debits and debits by category for each month; posted Transactions only.",
+        "operationId": "get_spending_insights_v1_accounts__account_id__insights_get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "account_id",
+            "required": true,
+            "schema": {
+              "title": "Account Id",
+              "type": "string"
+            }
+          },
+          {
+            "description": "Kolkata months, ending now.",
+            "in": "query",
+            "name": "months",
+            "required": false,
+            "schema": {
+              "default": 6,
+              "description": "Kolkata months, ending now.",
+              "maximum": 12,
+              "minimum": 1,
+              "title": "Months",
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SpendingInsights"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "400": {
+            "description": "Invalid argument"
+          },
+          "404": {
+            "description": "No such Account"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          },
+          "503": {
+            "description": "Database unavailable; retry shortly"
+          },
+          "504": {
+            "description": "Deadline exceeded"
+          }
+        },
+        "security": [
+          {
+            "GatewaySignature": []
+          }
+        ],
+        "summary": "Get spending insights",
+        "tags": [
+          "insights"
         ]
       }
     },
@@ -2709,6 +3193,234 @@
         "summary": "Search an Account's Transactions",
         "tags": [
           "accounts"
+        ]
+      }
+    },
+    "/v1/aml/alerts": {
+      "get": {
+        "description": "Alerts soonest-SLA first, a page at a time, with each rule's name and severity.",
+        "operationId": "list_aml_alerts_v1_aml_alerts_get",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "customer_id",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Customer Id"
+            }
+          },
+          {
+            "in": "query",
+            "name": "status",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "items": {
+                    "$ref": "#/components/schemas/AmlAlertStatus"
+                  },
+                  "type": "array"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Status"
+            }
+          },
+          {
+            "in": "query",
+            "name": "typology",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "items": {
+                    "$ref": "#/components/schemas/Typology"
+                  },
+                  "type": "array"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Typology"
+            }
+          },
+          {
+            "in": "query",
+            "name": "assigned_to",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "maxLength": 128,
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Assigned To"
+            }
+          },
+          {
+            "description": "From the previous page's `next`.",
+            "in": "query",
+            "name": "after_sla_due_at",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "format": "date-time",
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "From the previous page's `next`.",
+              "title": "After Sla Due At"
+            }
+          },
+          {
+            "description": "From the previous page's `next`.",
+            "in": "query",
+            "name": "after_alert_id",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "From the previous page's `next`.",
+              "title": "After Alert Id"
+            }
+          },
+          {
+            "in": "query",
+            "name": "limit",
+            "required": false,
+            "schema": {
+              "default": 25,
+              "maximum": 100,
+              "minimum": 1,
+              "title": "Limit",
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AmlAlertPage"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "400": {
+            "description": "Invalid argument"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          },
+          "503": {
+            "description": "Database unavailable; retry shortly"
+          },
+          "504": {
+            "description": "Deadline exceeded"
+          }
+        },
+        "security": [
+          {
+            "GatewaySignature": []
+          }
+        ],
+        "summary": "List AML alerts",
+        "tags": [
+          "aml"
+        ]
+      }
+    },
+    "/v1/aml/alerts/{alert_id}": {
+      "get": {
+        "description": "The alert, the rule and thresholds it fired on, and the Transactions it cites.",
+        "operationId": "get_aml_alert_v1_aml_alerts__alert_id__get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "alert_id",
+            "required": true,
+            "schema": {
+              "title": "Alert Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AmlAlert"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "400": {
+            "description": "Invalid argument"
+          },
+          "404": {
+            "description": "No such alert"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          },
+          "503": {
+            "description": "Database unavailable; retry shortly"
+          },
+          "504": {
+            "description": "Deadline exceeded"
+          }
+        },
+        "security": [
+          {
+            "GatewaySignature": []
+          }
+        ],
+        "summary": "Get an AML alert",
+        "tags": [
+          "aml"
         ]
       }
     },

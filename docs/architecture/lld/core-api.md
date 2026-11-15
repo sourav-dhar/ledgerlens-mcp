@@ -163,7 +163,8 @@ Database invariants backing the code:
 | Text filter | `narration ILIKE`, with the caller's `%` and `_` escaped, backed by a `pg_trgm` GIN index; at least 3 characters |
 | Page size | 1–100, default 25; the gateway also caps response bytes |
 | One Transaction | `GET /v1/transactions/{txn_id}` probes each partition's primary-key index once (the ID alone names no month); its status history is then read with the row's `initiated_at`, which prunes to one partition |
-| Aggregates (`/insights`) | `GROUP BY date_trunc('month', initiated_at), category` over the partitioned table |
+| Aggregates (`/insights`) | Posted Transactions only (`posted_at IS NOT NULL`), `GROUP BY` Kolkata month, direction and category over the partitioned table; category is the merchant's, else the Transaction's purpose (`salary`, `emi`, …). Months are IST calendar months because a statement month is local; it is the only place `core-api` buckets by IST. Quiet months come back as zeros |
+| AML queue (`/v1/aml/alerts`) | Keyset on `(sla_due_at, alert_id)` ascending, soonest SLA first; filters by Customer, statuses, typologies and assignee; each item carries its rule's name and severity. One alert adds the rule's parameters and the Transactions it cites, restricted to the alert's own Customer |
 
 ## 7. OpenAPI
 
