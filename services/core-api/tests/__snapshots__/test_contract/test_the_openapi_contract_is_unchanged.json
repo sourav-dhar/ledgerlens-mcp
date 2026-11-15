@@ -704,6 +704,406 @@
         "title": "KeysetPosition",
         "type": "object"
       },
+      "KycDocument": {
+        "description": "Metadata only: the document itself is never returned.",
+        "properties": {
+          "doc_type": {
+            "$ref": "#/components/schemas/KycDocumentType"
+          },
+          "document_id": {
+            "title": "Document Id",
+            "type": "string"
+          },
+          "expires_on": {
+            "anyOf": [
+              {
+                "format": "date",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Expires On"
+          },
+          "kyc_id": {
+            "title": "Kyc Id",
+            "type": "string"
+          },
+          "rejection_reason": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Rejection Reason"
+          },
+          "sha256": {
+            "title": "Sha256",
+            "type": "string"
+          },
+          "status": {
+            "$ref": "#/components/schemas/KycDocumentStatus"
+          },
+          "uploaded_at": {
+            "format": "date-time",
+            "title": "Uploaded At",
+            "type": "string"
+          }
+        },
+        "required": [
+          "document_id",
+          "kyc_id",
+          "doc_type",
+          "status",
+          "rejection_reason",
+          "sha256",
+          "uploaded_at",
+          "expires_on"
+        ],
+        "title": "KycDocument",
+        "type": "object"
+      },
+      "KycDocumentList": {
+        "properties": {
+          "documents": {
+            "items": {
+              "$ref": "#/components/schemas/KycDocument"
+            },
+            "title": "Documents",
+            "type": "array"
+          }
+        },
+        "required": [
+          "documents"
+        ],
+        "title": "KycDocumentList",
+        "type": "object"
+      },
+      "KycDocumentStatus": {
+        "enum": [
+          "accepted",
+          "rejected",
+          "expired"
+        ],
+        "title": "KycDocumentStatus",
+        "type": "string"
+      },
+      "KycDocumentType": {
+        "enum": [
+          "pan_card",
+          "aadhaar_masked",
+          "passport",
+          "selfie",
+          "address_proof",
+          "signature"
+        ],
+        "title": "KycDocumentType",
+        "type": "string"
+      },
+      "KycEvent": {
+        "properties": {
+          "actor": {
+            "$ref": "#/components/schemas/Actor"
+          },
+          "from_status": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/KycStatus"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "occurred_at": {
+            "format": "date-time",
+            "title": "Occurred At",
+            "type": "string"
+          },
+          "reason": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Reason"
+          },
+          "to_status": {
+            "$ref": "#/components/schemas/KycStatus"
+          }
+        },
+        "required": [
+          "from_status",
+          "to_status",
+          "actor",
+          "reason",
+          "occurred_at"
+        ],
+        "title": "KycEvent",
+        "type": "object"
+      },
+      "KycProfile": {
+        "properties": {
+          "aadhaar_last4": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Aadhaar Last4"
+          },
+          "ckyc_number": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Ckyc Number"
+          },
+          "created_at": {
+            "format": "date-time",
+            "title": "Created At",
+            "type": "string"
+          },
+          "customer_id": {
+            "title": "Customer Id",
+            "type": "string"
+          },
+          "events": {
+            "items": {
+              "$ref": "#/components/schemas/KycEvent"
+            },
+            "title": "Events",
+            "type": "array"
+          },
+          "face_match_score": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Face Match Score"
+          },
+          "fatca_crs_declared": {
+            "title": "Fatca Crs Declared",
+            "type": "boolean"
+          },
+          "kyc_id": {
+            "title": "Kyc Id",
+            "type": "string"
+          },
+          "kyc_status": {
+            "$ref": "#/components/schemas/KycStatus"
+          },
+          "kyc_type": {
+            "$ref": "#/components/schemas/KycType"
+          },
+          "liveness_score": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Liveness Score"
+          },
+          "next_review_due": {
+            "anyOf": [
+              {
+                "format": "date",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Next Review Due"
+          },
+          "ovd_type": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/OvdType"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "pan_last4": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Pan Last4"
+          },
+          "pan_name_match_score": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Pan Name Match Score"
+          },
+          "pan_status": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/PanStatus"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "pep_flag": {
+            "title": "Pep Flag",
+            "type": "boolean"
+          },
+          "risk_category": {
+            "$ref": "#/components/schemas/RiskCategory"
+          },
+          "risk_rationale": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Risk Rationale"
+          },
+          "sanctions_flag": {
+            "title": "Sanctions Flag",
+            "type": "boolean"
+          },
+          "vcip_agent_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Vcip Agent Id"
+          },
+          "vcip_session_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Vcip Session Id"
+          },
+          "verified_at": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Verified At"
+          },
+          "verified_by": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Verified By"
+          }
+        },
+        "required": [
+          "kyc_id",
+          "customer_id",
+          "kyc_type",
+          "kyc_status",
+          "ckyc_number",
+          "pan_last4",
+          "pan_status",
+          "pan_name_match_score",
+          "aadhaar_last4",
+          "ovd_type",
+          "vcip_session_id",
+          "vcip_agent_id",
+          "liveness_score",
+          "face_match_score",
+          "pep_flag",
+          "sanctions_flag",
+          "fatca_crs_declared",
+          "risk_category",
+          "risk_rationale",
+          "verified_at",
+          "verified_by",
+          "next_review_due",
+          "created_at",
+          "events"
+        ],
+        "title": "KycProfile",
+        "type": "object"
+      },
+      "KycStatus": {
+        "enum": [
+          "not_started",
+          "pending_documents",
+          "pending_vcip",
+          "in_review",
+          "on_hold",
+          "escalated",
+          "verified",
+          "rejected",
+          "re_kyc_due",
+          "re_kyc_overdue",
+          "expired"
+        ],
+        "title": "KycStatus",
+        "type": "string"
+      },
+      "KycType": {
+        "description": "How a KYC profile was verified (see GLOSSARY: Min-KYC, Full KYC, V-CIP).",
+        "enum": [
+          "min_kyc",
+          "full_kyc",
+          "v_cip",
+          "ckyc_download"
+        ],
+        "title": "KycType",
+        "type": "string"
+      },
       "ModeOfOperation": {
         "enum": [
           "single",
@@ -721,6 +1121,26 @@
           "partner"
         ],
         "title": "OnboardingChannel",
+        "type": "string"
+      },
+      "OvdType": {
+        "description": "Officially Valid Documents accepted as proof of address (see GLOSSARY: OVD).",
+        "enum": [
+          "passport",
+          "voter_id",
+          "driving_licence",
+          "aadhaar"
+        ],
+        "title": "OvdType",
+        "type": "string"
+      },
+      "PanStatus": {
+        "enum": [
+          "valid",
+          "invalid",
+          "not_aadhaar_linked"
+        ],
+        "title": "PanStatus",
         "type": "string"
       },
       "Persona": {
@@ -2242,6 +2662,126 @@
         "summary": "Get a Customer's profile",
         "tags": [
           "customers"
+        ]
+      }
+    },
+    "/v1/customers/{customer_id}/kyc": {
+      "get": {
+        "description": "The profile in force (the newest) with its status history; PAN and Aadhaar as last 4.",
+        "operationId": "get_kyc_status_v1_customers__customer_id__kyc_get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "customer_id",
+            "required": true,
+            "schema": {
+              "title": "Customer Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/KycProfile"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "400": {
+            "description": "Invalid argument"
+          },
+          "404": {
+            "description": "No such Customer, or no KYC profile"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          },
+          "503": {
+            "description": "Database unavailable; retry shortly"
+          },
+          "504": {
+            "description": "Deadline exceeded"
+          }
+        },
+        "security": [
+          {
+            "GatewaySignature": []
+          }
+        ],
+        "summary": "Get a Customer's KYC status",
+        "tags": [
+          "kyc"
+        ]
+      }
+    },
+    "/v1/customers/{customer_id}/kyc/documents": {
+      "get": {
+        "description": "Metadata of every document, newest first; the documents themselves are never served.",
+        "operationId": "list_kyc_documents_v1_customers__customer_id__kyc_documents_get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "customer_id",
+            "required": true,
+            "schema": {
+              "title": "Customer Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/KycDocumentList"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "400": {
+            "description": "Invalid argument"
+          },
+          "404": {
+            "description": "No such Customer, or no KYC profile"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          },
+          "503": {
+            "description": "Database unavailable; retry shortly"
+          },
+          "504": {
+            "description": "Deadline exceeded"
+          }
+        },
+        "security": [
+          {
+            "GatewaySignature": []
+          }
+        ],
+        "summary": "List a Customer's KYC documents",
+        "tags": [
+          "kyc"
         ]
       }
     },
