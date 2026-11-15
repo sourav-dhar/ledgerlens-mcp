@@ -16,18 +16,17 @@ from kosha_datagen.chance import pick
 from kosha_datagen.config import GenerationConfig
 from kosha_datagen.payments import Booked
 from kosha_datagen.rows import Dispute, TransactionReview
+from kosha_domain.disputes import COMPENSATION_PER_DAY_PAISE, turnaround
 from kosha_domain.ids import IdPrefix, new_id
 from kosha_domain.lifecycles import DisputeStatus, TransactionReviewStatus, TransactionStatus
 from kosha_domain.money import format_inr
-from kosha_domain.vocabulary import DisputeReason, Rail, ReviewPriority
+from kosha_domain.vocabulary import DisputeReason, ReviewPriority
 
 D = DisputeStatus
 T = TransactionStatus
 R = TransactionReviewStatus
 DAY = timedelta(days=1)
 HOUR = timedelta(hours=1)
-COMPENSATION_PER_DAY_PAISE = 10_000
-_TAT = {Rail.ATM: 5 * DAY, Rail.CARD_POS: 5 * DAY, Rail.CARD_ECOM: 5 * DAY}
 _LATE_STATES = {T.CREDIT_DELAYED, T.DEEMED_SUCCESS, T.REVERSAL_INITIATED, T.RETURNED}
 _CARD_CLAIMS = {
     DisputeReason.GOODS_NOT_RECEIVED: 5,
@@ -35,10 +34,6 @@ _CARD_CLAIMS = {
     DisputeReason.DUPLICATE: 1,
     DisputeReason.AMOUNT_MISMATCH: 1,
 }
-
-
-def tat(rail: Rail) -> timedelta:
-    return _TAT.get(rail, DAY)
 
 
 def dispute_rows(
@@ -84,7 +79,7 @@ def _dispute(
         reason_code=reason,
         amount_paise=amount or txn.amount_paise,
         status=status,
-        tat_due_at=txn.initiated_at + tat(txn.rail),
+        tat_due_at=txn.initiated_at + turnaround(txn.rail),
         compensation_paise=compensation,
         resolution=resolution,
         chargeback_ref=chargeback_ref,
@@ -117,7 +112,7 @@ def _reversed(config: GenerationConfig, rng: random.Random, b: Booked) -> Disput
     txn = b.txn
     back = b.reached(T.REVERSED) or config.now
     created = txn.initiated_at + rng.randint(2, 20) * HOUR
-    late_days = math.ceil((back - (txn.initiated_at + tat(txn.rail))) / DAY)
+    late_days = math.ceil((back - (txn.initiated_at + turnaround(txn.rail))) / DAY)
     compensation = max(0, late_days) * COMPENSATION_PER_DAY_PAISE
     if created >= back:
         created = back - HOUR
