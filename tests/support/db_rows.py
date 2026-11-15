@@ -98,6 +98,22 @@ def transaction(
     return values["txn_id"], values["initiated_at"]
 
 
+def merchant(db: psycopg.Connection, **overrides: Any) -> str:
+    values: dict[str, Any] = {
+        "merchant_id": new_id(IdPrefix.MERCHANT),
+        "display_name": "QuickBasket",
+        "legal_name": "QuickBasket Retail Private Limited",
+        "mcc": 5411,
+        "category": "groceries",
+        "city": "Bengaluru",
+        "state": "Karnataka",
+        "acquirer_bank": "HDFC Bank",
+        "risk_level": "low",
+    } | overrides
+    insert(db, "core.merchants", values)
+    return values["merchant_id"]
+
+
 def vpa(db: psycopg.Connection, account_id: str, customer_id: str, **overrides: Any) -> str:
     values: dict[str, Any] = {
         "vpa_id": new_id(IdPrefix.VPA),

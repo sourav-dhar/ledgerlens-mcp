@@ -47,7 +47,7 @@ _VPAS = """
     ORDER BY is_primary DESC, created_at, vpa_id
 """
 
-_TRANSACTION_COLUMNS = sql.SQL("""
+TRANSACTION_COLUMNS = sql.SQL("""
     txn_id, account_id, customer_id, direction, amount_paise, currency, rail, txn_type,
     status, status_reason_code, failure_reason_code, hold_reason, expected_credit_by, utr,
     rrn, npci_txn_id, counterparty_name, counterparty_vpa, counterparty_account_masked,
@@ -70,7 +70,7 @@ _TRANSACTION = sql.SQL("""
            geo_lat::float8 AS geo_lat, geo_lng::float8 AS geo_lng
     FROM core.transactions
     WHERE txn_id = %s
-""").format(columns=_TRANSACTION_COLUMNS)
+""").format(columns=TRANSACTION_COLUMNS)
 
 _HISTORY = """
     SELECT from_status, to_status, reason_code, actor, occurred_at
@@ -167,7 +167,7 @@ class AccountRepository:
     async def search(self, search: TransactionSearch, *, limit: int) -> TransactionPage:
         conditions, params = _conditions(search)
         query = _SEARCH.format(
-            columns=_TRANSACTION_COLUMNS, conditions=sql.SQL(" AND ").join(conditions)
+            columns=TRANSACTION_COLUMNS, conditions=sql.SQL(" AND ").join(conditions)
         )
         # One extra row says whether another page exists without a count(*).
         found = await (await self._conn.execute(query, params | {"fetch": limit + 1})).fetchall()
