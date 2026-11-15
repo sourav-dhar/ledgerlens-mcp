@@ -167,6 +167,34 @@ def kyc_profile(db: psycopg.Connection, customer_id: str, **overrides: Any) -> s
     return values["kyc_id"]
 
 
+def kyc_document(db: psycopg.Connection, kyc: tuple[str, str], **overrides: Any) -> str:
+    """A document on the ``(kyc_id, customer_id)`` profile."""
+    values: dict[str, Any] = {
+        "document_id": new_id(IdPrefix.KYC_DOCUMENT),
+        "kyc_id": kyc[0],
+        "customer_id": kyc[1],
+        "doc_type": "pan_card",
+        "s3_key": f"kyc/{kyc[1]}/pan_card.jpg",
+        "sha256": "a" * 64,
+        "status": "accepted",
+        "uploaded_at": NOW,
+    } | overrides
+    insert(db, "kyc.kyc_documents", values)
+    return values["document_id"]
+
+
+def kyc_event(db: psycopg.Connection, kyc_id: str, **overrides: Any) -> str:
+    values: dict[str, Any] = {
+        "event_id": new_id(IdPrefix.KYC_EVENT),
+        "kyc_id": kyc_id,
+        "to_status": "verified",
+        "actor": "staff",
+        "occurred_at": NOW,
+    } | overrides
+    insert(db, "kyc.kyc_events", values)
+    return values["event_id"]
+
+
 def aml_rule(db: psycopg.Connection, **overrides: Any) -> str:
     values: dict[str, Any] = {
         "rule_id": new_id(IdPrefix.AML_RULE),
