@@ -324,7 +324,9 @@ def document(db: psycopg.Connection, **overrides: Any) -> str:
     doc_id = overrides.get("doc_id", new_id(IdPrefix.DOCUMENT))
     values: dict[str, Any] = {
         "doc_id": doc_id,
-        "doc_code": f"CMP-SOP-{doc_id[-3:].translate(_DIGITS)}",
+        # Five letters and three digits from the ULID: a three-digit code alone collides
+        # often enough across a test session to trip the one-effective-version index.
+        "doc_code": f"CMP-{doc_id[-8:-3].translate(_LETTERS)}-{doc_id[-3:].translate(_DIGITS)}",
         "department": "compliance",
         "title": "Transaction Monitoring & Alert Handling SOP",
         "doc_type": "sop",
@@ -355,3 +357,5 @@ def chunk(db: psycopg.Connection, doc_id: str, classification: str, **overrides:
 
 # Crockford base32 → digits, to derive unique numeric identifiers from fresh ULIDs.
 _DIGITS = str.maketrans("ABCDEFGHJKMNPQRSTVWXYZ", "0123456789012345678901")
+# ...and digits → letters, for the letter part of a document code.
+_LETTERS = str.maketrans("0123456789", "ABCDEFGHJK")

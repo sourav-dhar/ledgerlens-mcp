@@ -92,6 +92,8 @@ LIMIT $4;
 | Degraded mode | When embedding fails, `vector_hits` is replaced by an empty set and the response carries `degraded: true` |
 | Result shape | `doc_code`, `title`, `version`, `effective_date`, `section_path`, `content`, `score`, `citation` (`kb://compliance/CMP-SOP-004#4.2`) |
 | RLS | Every row in every CTE passes the `kb.chunks` policy, so the ceiling cannot be bypassed by a query bug |
+| Until P5 | `GET /v1/kb/search` runs the `text_hits` half alone and answers `retrieval: "full_text"`; vector hits and RRF join it once ingestion embeds the corpus, and the field becomes `hybrid` |
+| Hidden documents | `GET /v1/kb/documents/{doc_code}` answers the same `404` for a document above the ceiling as for a missing one, so callers cannot probe for what they may not read |
 
 ## 3. Classification ceiling
 
