@@ -219,6 +219,7 @@ Operational tables with no foreign keys to business data:
 | `ops.outbox` | Domain events awaiting publication | `published_at IS NULL` partial index |
 | `ops.audit_log` | One row per tool call | Append-only: `UPDATE`/`DELETE` revoked from `kosha_app`, and a `kosha.forbid_change()` trigger rejects `UPDATE`, `DELETE` and `TRUNCATE` from anyone, the owner included |
 | `ops.idempotency_keys` | Exactly-once effect for writes | PK `(scope, key)`; `expires_at` |
+| `ops.processed_events` | Exactly-once effect for event consumers | PK `(consumer, event_id)`; purged after 30 days (revision 0008) |
 
 ## 4. Knowledge base
 
