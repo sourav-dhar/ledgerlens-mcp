@@ -41,8 +41,8 @@ Delivered in phases; each phase lands as one reviewed pull request with green CI
 |---|---|---|
 | **P0** | Repository, uv workspace, CI/CD, hardened Docker image, design docs, ADRs | ✅ [v0.2.0](https://github.com/sourav-dhar/ledgerlens-mcp/releases/tag/v0.2.0) |
 | **P1** | Deterministic synthetic data generator, PostgreSQL schema and migrations | 🚧 Domain, schema, generator, loader and `poe seed` merged; full-volume run pending |
-| **P2** | Core Banking API: customers, accounts, ledger, KYC, AML, disputes | 🚧 Signed internal requests; customer, account, transaction, KYC, AML and insight reads; idempotent disputes and reviews. KB search and audit next |
-| P3 | MCP gateway: tools, resources, prompts, OAuth, masking, audit | |
+| **P2** | Core Banking API: customers, accounts, ledger, KYC, AML, disputes | ✅ 16 routes behind signed internal requests, idempotent writes, PAN envelope encryption; failure matrix green (release pending with v0.3.0) |
+| P3 | MCP gateway: tools, resources, prompts, OAuth, masking, audit | ⏭️ next |
 | P4 | Resilience toolkit, chaos mode, screening vendor simulator | |
 | P5 | SOP corpus, SQS ingestion pipeline, hybrid retrieval, RAG evals | |
 | P6 | AWS CDK, OIDC deploys, CodeDeploy canaries, end-to-end and load tests | |
@@ -87,7 +87,7 @@ docs/          plans · architecture (HLD + 10 LLDs) · ADRs · diagrams · MkDo
 - **Test-first**, with a failure matrix per tool (auth, scopes, masking, timeouts, breaker open, rate limits, idempotency).
 - **Strict gates:** ruff, pyright strict at zero errors, pytest with warnings as errors, ≥ 90% coverage per package.
 - **Reproducible images:** code-only rebuilds in ~7 s via a bit-for-bit reproducible dependency layer; non-root, read-only, all capabilities dropped.
-- **Decisions are written down:** [13 ADRs](docs/adr/index.md), a [domain glossary](GLOSSARY.md) and [versioned plans](docs/plans/CHANGELOG.md).
+- **Decisions are written down:** [14 ADRs](docs/adr/index.md), a [domain glossary](GLOSSARY.md) and [versioned plans](docs/plans/CHANGELOG.md).
 
 ---
 

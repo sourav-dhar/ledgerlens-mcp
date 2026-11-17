@@ -4,6 +4,10 @@
 
 ## Lessons learned
 
+- **2026-11-17 — Unit-only coverage drifts down as database code grows.** Repositories and routes are exercised by the integration suite, which the gate did not count, so coverage fell to 89.5% with the tests still thorough. CI now combines unit and integration coverage data (`COVERAGE_FILE` per job, `coverage combine`) before the 90% gate; combined it is 99%.
+- **2026-11-17 — Cases that commit to a shared database must not share data.** Three parametrised ceiling cases each committed four documents with the same search word to the session's scratch database, so later cases counted earlier rows. Give each case its own data (a word, an ID), and make default test identifiers wide enough not to collide (`doc_code` had 3 random digits).
+- **2026-11-17 — FastAPI 0.162 includes routers lazily.** `app.routes` holds `_IncludedRouter` placeholders, not `APIRoute`s, until resolved. Enumerate routes from `app.openapi()["paths"]`, which is the published contract anyway.
+- **2026-11-17 — Plan for determinism when adding randomness to generated data.** Sealing PANs needed random keys and nonces; passing the generator's seeded `rng.randbytes` kept every dataset reproducible and the smaller-scale-is-a-prefix property intact.
 - **2026-11-14 — A dependency that raises pre-empts FastAPI validation.** FastAPI resolves dependencies before it reports invalid query parameters, so a "database configured?" dependency answered `503` to malformed input. Inject `Database | None` and check it inside the handler (`deps.require`).
 - **2026-11-14 — The Lambda Web Adapter's readiness check gates every cold start.** Pointing it at a readiness probe that checks the database would stop new instances starting during a database outage. The adapter waits on `/healthz`; `/readyz` is for orchestrators and humans.
 - **2026-11-14 — Async psycopg cannot run on the Windows Proactor loop.** The root `anyio_backend` fixture uses `asyncio.SelectorEventLoop` on `win32`; CI on Linux is unaffected.
