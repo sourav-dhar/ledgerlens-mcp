@@ -130,7 +130,11 @@ Grafana dashboards are provisioned from JSON in `docker/observability/grafana/`;
 | DLQ not empty | `ApproximateNumberOfMessagesVisible` > 0 | Notify |
 | Outbox lag | `outbox_lag_seconds` > 120 | Notify |
 | Audit write failures | > 0 in 5 min | Notify |
-| Rate limiter fail-open | DynamoDB errors > 0 in 5 min | Notify |
+| Rate limiter degraded | `rate_limiter_degraded` > 0 (per-instance buckets in use) for 5 min | Notify |
+| Synthetic probe | `synthetic_success` < 1 for 2 consecutive runs (10 min) | Notify |
+| Partition runway | Rows in `core.transactions_default` > 0, or fewer than 3 future partitions | Notify |
+| Ledger reconciliation | Nightly reconcile finds a mismatch, orphan or unbalanced entry | Notify (never auto-corrected) |
+| NAT instance | EC2 status check failed | EC2 automatic recovery; notify |
 | RDS | CPU > 80%, free storage < 2 GB, connections > 80% of max | Notify |
 | Cost guard | AWS Budgets at 80% of monthly budget | Email |
 

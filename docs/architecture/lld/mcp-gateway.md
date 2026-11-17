@@ -112,7 +112,9 @@ async def search_transactions(
 | `extra="forbid"` on inputs | Unknown arguments are rejected, not ignored |
 | Money in paise (`int`) with a display string alongside | No floats anywhere on the wire |
 | Output models are explicit | FastMCP publishes them as `outputSchema`; contract tests snapshot them |
-| Write tools take `idempotency_key: UUID` | Required, not optional |
+| Write tools take `idempotency_key: UUID` | Required, not optional; one key per intended write, reused on every retry of it |
+| A write is retried by the gateway only with its original key (2 attempts, on connect errors, `503`, `504`) | A response lost after `core-api` committed comes back as the stored replay, not a second dispute ([System design §8](../system-design.md#8-idempotency-end-to-end)) |
+| The audit middleware mints `audit_id` once per tool call | `POST /v1/audit` inserts with `ON CONFLICT DO NOTHING`, so a retried audit write records the call once |
 | Write tools carry `destructiveHint: False, idempotentHint: True` | Accurate hints help clients decide when to confirm |
 | Write tools request confirmation via MCP elicitation when the client supports it | Falls back to an explicit `confirm: true` argument |
 

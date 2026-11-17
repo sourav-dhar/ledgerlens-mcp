@@ -83,6 +83,7 @@ nav:
   - Architecture:
       - Overview: architecture/index.md
       - High-level design: architecture/hld.md
+      - System design: architecture/system-design.md
       - Low-level design:
           - MCP gateway: architecture/lld/mcp-gateway.md
           - Core API: architecture/lld/core-api.md
@@ -111,8 +112,10 @@ nav:
       - 0012 Opening balances GL: adr/0012-opening-balances-gl-for-balances-brought-forward.md
       - 0013 Signed internal requests: adr/0013-gateway-signs-internal-requests-with-hmac.md
       - 0014 PAN envelope encryption: adr/0014-pan-envelope-encryption-behind-a-keyring.md
+      - 0015 Layered rate limits: adr/0015-layered-rate-limits-weighted-and-fail-soft.md
   - Plans:
       - plans/CHANGELOG.md
+      - v1.1 System-design hardening: plans/v1.1-system-design-hardening.md
       - v1.0 Architecture: plans/v1.0-architecture.md
       - v0.2 Data model & corpus: plans/v0.2-data-model-and-corpus.md
       - v0.1 Discovery: plans/v0.1-discovery.md

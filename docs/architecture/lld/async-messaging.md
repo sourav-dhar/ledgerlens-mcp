@@ -55,7 +55,7 @@ sequenceDiagram
 | No phantom events | Rolled-back transactions leave no outbox row |
 | Parallel relays are safe | `FOR UPDATE SKIP LOCKED` |
 | Ordering | Best-effort by `created_at`; consumers do not depend on order (each event carries the full state they need) |
-| Exactly-once effect | At-least-once delivery + `ops.processed_events` dedupe table keyed by `event_id` (Proposed (to validate in P2): table added to v0.2 schema) |
+| Exactly-once effect | At-least-once delivery + `ops.processed_events` dedupe table keyed by `event_id` (revision 0008), kept 30 days: longer than DLQ retention plus redrive time |
 
 ## 2. Event envelope
 
@@ -113,7 +113,7 @@ flowchart LR
 
 | Error class | Example | Handling |
 |---|---|---|
-| Transient | OpenAI `429`, Postgres connection reset | Raise; message retried after visibility timeout |
+| Transient | OpenAI `429`, Postgres connection reset | Raise after `ChangeMessageVisibility` to `min(30 s × 2^(receive count − 1), 15 min)`, so a short outage retries with backoff instead of exhausting `maxReceiveCount` (resilience §10) |
 | Permanent | Malformed envelope, unknown `event_type`, document without header block | Log with `event_id`, raise; reaches DLQ after `maxReceiveCount` |
 | Duplicate | Same `event_id` delivered twice | Dedupe table; ack without effect |
 
