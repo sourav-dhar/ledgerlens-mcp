@@ -1,6 +1,6 @@
 # High-Level Design
 
-> Source of truth: [plan v1.0](../plans/v1.0-architecture.md). This document explains the shape; the plan records the decisions.
+> Source of truth: [plan v1.0](../plans/v1.0-architecture.md), amended by [v1.1](../plans/v1.1-system-design-hardening.md). This document explains the shape; the plan records the decisions. [System design](system-design.md) maps every standard system-design concern to where it is designed and built.
 
 ## 1. Purpose and scope
 
@@ -227,7 +227,9 @@ sequenceDiagram
 | Latency, KB search | p95 < 900 ms | HNSW index, single SQL round trip, 1024-dim embeddings | Locust, RAG eval suite |
 | Cold start | < 2.5 s | Slim arm64 images, lazy imports, no work at import time | Synthetic probe after deploy |
 | Availability | 99.5% | Canary + rollback, breakers, degradation, retries with budget | CloudWatch SLO alarms |
-| Fairness | 60 req/min/client, burst 20 | DynamoDB token bucket | Integration tests, Locust |
+| Fairness | 60 tokens/min per principal (burst 20), 300 per client, weighted by tool cost | Eight rate-limit layers from API Gateway throttling to the connection budget; fail soft ([ADR 0015](../adr/0015-layered-rate-limits-weighted-and-fail-soft.md)) | Integration tests, Locust |
+| Recoverability | RPO ≤ 5 min, RTO ≈ 1 h | Self-healing catalogue (resilience LLD §10), PITR backups, IaC rebuild | Chaos tests (P4), restore drill (P6) |
+| Idempotency | Every write takes effect once | Key + row + event in one transaction; same-key retries; consumer dedupe ([System design §8](system-design.md#8-idempotency-end-to-end)) | Write-route integration tests, LocalStack consumer tests |
 | Correctness of money | Ledger reconciles to the paisa | Double-entry postings, `BIGINT` paise, nightly reconciliation test | Property tests, reconciliation job |
 | Confidentiality | No PII beyond scope | Scope checks, masking, RLS on KB classification | Per-tool failure matrix |
 

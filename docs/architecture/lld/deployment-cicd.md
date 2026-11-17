@@ -150,3 +150,5 @@ sequenceDiagram
 | Post-deploy e2e failure | `cd.yml` triggers CodeDeploy stop with rollback |
 | Bad migration | Forward-fix only; migrations are additive, so the previous code version still runs |
 | Corrupted data in demo | `poe seed --reset` reloads deterministic data |
+| Corrupted data in a deployed database | Point-in-time restore to a new instance (RPO ≤ 5 min, RTO ≈ 1 h; [System design §6](../system-design.md#6-backup-and-disaster-recovery)) |
+| `poe pause` longer than 7 days | RDS starts a stopped instance automatically after 7 days; run `poe pause` again (P6 adds a scheduled check that re-stops it) |

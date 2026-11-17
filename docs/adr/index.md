@@ -18,3 +18,4 @@ Each record captures a decision that is hard to reverse, would surprise a newcom
 | [0012](0012-opening-balances-gl-for-balances-brought-forward.md) | Balances older than the ledger are brought forward against an `opening_balances` GL account |
 | [0013](0013-gateway-signs-internal-requests-with-hmac.md) | The gateway signs its requests to `core-api` with an HMAC over the request and the principal |
 | [0014](0014-pan-envelope-encryption-behind-a-keyring.md) | PANs are envelope-encrypted behind a keyring, with a local keyring standing in for KMS until P6 |
+| [0015](0015-layered-rate-limits-weighted-and-fail-soft.md) | Rate limits are layered, weighted by tool cost, keyed on the verified principal, and fail soft |
