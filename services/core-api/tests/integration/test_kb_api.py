@@ -67,21 +67,26 @@ async def test_superseded_versions_are_not_searched(
 
 
 @pytest.mark.parametrize(
-    ("auth", "visible"),
+    ("word", "auth", "visible"),
     [
-        (SignedAs("demo-1"), ["public"]),
-        (SUPPORT, ["internal", "public"]),
-        (COMPLIANCE, ["confidential", "internal", "public", "restricted"]),
+        # A word per case: rows committed by one case stay in the shared database.
+        ("marrowfat", SignedAs("demo-1"), ["public"]),
+        ("samphire", SUPPORT, ["internal", "public"]),
+        ("fenugreek", COMPLIANCE, ["confidential", "internal", "public", "restricted"]),
     ],
     ids=["no ceiling", "internal", "restricted"],
 )
 async def test_search_sees_only_what_the_ceiling_allows(
-    api: AsyncClient, committed: psycopg.Connection, auth: SignedAs, visible: list[str]
+    api: AsyncClient,
+    committed: psycopg.Connection,
+    word: str,
+    auth: SignedAs,
+    visible: list[str],
 ) -> None:
     for level in ("public", "internal", "confidential", "restricted"):
-        _doc(committed, "marrowfat", classification=level)
+        _doc(committed, word, classification=level)
 
-    body = await _search(api, auth, q="marrowfat", limit=10)
+    body = await _search(api, auth, q=word, limit=10)
 
     assert sorted(r["classification"] for r in body["results"]) == visible
 
