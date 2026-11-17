@@ -15,6 +15,7 @@ from kosha_datagen.parties import Fate, Profile
 from kosha_datagen.rows import KycDocument, KycEvent, KycProfile, ScreeningResult
 from kosha_domain.ids import IdPrefix, new_id
 from kosha_domain.lifecycles import KycStatus
+from kosha_domain.vault import LOCAL_PASSPHRASE, LocalKeyring, PanVault
 from kosha_domain.vocabulary import (
     Actor,
     KycDocumentStatus,
@@ -27,6 +28,10 @@ from kosha_domain.vocabulary import (
     RiskCategory,
     ScreeningDecision,
 )
+
+# Synthetic PANs are sealed exactly as real ones would be, under the local keyring, so the
+# local stack can unmask them for the kyc:pii scope (ADR 0014).
+_VAULT = PanVault(LocalKeyring(LOCAL_PASSPHRASE))
 
 K = KycStatus
 RE_KYC_YEARS = {RiskCategory.HIGH: 2, RiskCategory.MEDIUM: 8, RiskCategory.LOW: 10}
@@ -126,7 +131,11 @@ def kyc_rows(
         kyc_type=kyc_type,
         kyc_status=steps[-1][0],
         ckyc_number=refs.ckyc_number(rng) if verified_at and rng.random() < 0.7 else None,
-        pan_token=f"kms:v1:{refs.hex_token(rng, 40)}" if reached_documents else None,
+        pan_token=(
+            _VAULT.encrypt(pan, customer_id=profile.customer_id, randbytes=rng.randbytes)
+            if reached_documents
+            else None
+        ),
         pan_last4=pan[-4:] if reached_documents else None,
         pan_status=(pick(rng, _PAN_STATUSES) if reached_documents else None),
         pan_name_match_score=_score(rng, 86, 100) if reached_documents else None,
