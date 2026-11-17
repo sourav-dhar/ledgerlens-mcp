@@ -190,3 +190,26 @@ Errors share one body, `{"error": {"code": "...", "message": "..."}}`; `code` is
 Any other database error is a defect and answers `500`.
 
 `/readyz` answers `200` only when the database is reachable and at the Alembic head this build ships, and `503` otherwise. The Lambda Web Adapter waits on `/healthz` instead, so a database outage cannot stop instances starting.
+
+## 8. Failure matrix
+
+Plan v1.0 §8 lists the failures every tool must survive. `core-api`'s share is below; rows owned by the gateway, the resilience toolkit or the RAG pipeline are marked with their phase. `tests/test_route_guards.py` reads the routes from the OpenAPI document, so the rows marked *every route* hold for any route added later.
+
+| Failure | `core-api` behaviour | Where it is tested |
+|---|---|---|
+| Missing, stale or forged principal | `401 unauthenticated` (gateway signature, ADR 0013) | Every route: `test_route_guards.py`; tampering cases: `test_internal_auth.py` |
+| Missing, expired or wrong-audience token; missing scope | Not seen by `core-api`: the gateway rejects it first | P3 tool matrix |
+| Masking per role | Values are returned unmasked; the full PAN only from `/kyc/pan`, which the gateway calls for `kyc:pii` and which audits itself | `test_pan_api.py`; masking itself in P3 |
+| Invalid input | `400 invalid_argument` for rules the schema cannot express, `422` for malformed parameters and bodies | `test_*_routes.py` for each router |
+| Not found | `404 not_found`; a KB document above the ceiling is indistinguishable from a missing one | `tests/integration/test_*_api.py` |
+| Empty result | Empty pages and lists, zero months for insights | `test_kyc_api.py`, `test_insights_api.py`, `test_kb_api.py` |
+| Oversized result | Every list is capped (`limit` ≤ 100, KB ≤ 20); the gateway also caps bytes | `test_*_routes.py` |
+| Tampered cursor | Keyset positions are plain values: half a position or a malformed ID is `400`; signing and tamper checks are the gateway's (P3) | `test_accounts_routes.py`, `test_aml_insights_routes.py` |
+| Downstream timeout | `statement_timeout` → `504 deadline_exceeded` | `test_database.py` |
+| Database pool exhausted or unreachable | `503 unavailable`, `Retry-After: 1` | Every route: `test_route_guards.py`; pool: `test_database.py` |
+| Downstream 5xx, breaker open | `core-api` has no HTTP downstream yet; breakers belong to the gateway | P4 |
+| Rate limited | Enforced by the gateway on the verified client | P3 |
+| Idempotent replay, conflict, concurrent duplicate | `200` replay, `409` conflict; duplicates serialise on the key and the Transaction row | `test_disputes_api.py`, `test_reviews_api.py` |
+| Illegal state transition | `409 conflict` from the schema's lifecycle triggers | `test_database.py` |
+| OpenAI outage → degraded | Search is full-text only until P5 (`retrieval: "full_text"`) | P5 |
+| Prompt-injection content in KB results | Returned as data; handling is the gateway's and the agents' | P5 |
