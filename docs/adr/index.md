@@ -17,3 +17,4 @@ Each record captures a decision that is hard to reverse, would surprise a newcom
 | [0011](0011-composite-foreign-keys-to-partitioned-transactions.md) | Rows that reference a Transaction carry its `initiated_at` in a composite foreign key |
 | [0012](0012-opening-balances-gl-for-balances-brought-forward.md) | Balances older than the ledger are brought forward against an `opening_balances` GL account |
 | [0013](0013-gateway-signs-internal-requests-with-hmac.md) | The gateway signs its requests to `core-api` with an HMAC over the request and the principal |
+| [0014](0014-pan-envelope-encryption-behind-a-keyring.md) | PANs are envelope-encrypted behind a keyring, with a local keyring standing in for KMS until P6 |

@@ -70,6 +70,15 @@ class KycDocument(BaseModel):
     expires_on: date | None
 
 
+class UnmaskedPan(BaseModel):
+    """The full PAN, for callers the gateway granted ``kyc:pii``; every read is audited."""
+
+    customer_id: str
+    kyc_id: str
+    pan: str
+    pan_last4: str
+
+
 class KycDocumentList(BaseModel):
     documents: list[KycDocument]
     """Newest first, across every profile the Customer has had."""

@@ -109,6 +109,8 @@ sequenceDiagram
 
 *Notice: the encryption context binds each ciphertext to its customer, so a token copied onto another customer's row cannot be decrypted.*
 
+The scheme lives in `kosha_domain.vault` behind a `Keyring` interface ([ADR 0014](../../adr/0014-pan-envelope-encryption-behind-a-keyring.md)). Until KMS is deployed (P6), a `LocalKeyring` plays its part with the same token format, so the generator's synthetic PANs open on the local stack. `GET /v1/customers/{id}/kyc/pan`, which the gateway calls only for `kyc:pii`, opens the token and writes an `ops.audit_log` record with `pii_unmasked = true` in the same transaction.
+
 Plaintext secrets never appear in environment variables at build time; Lambdas fetch them at cold start through the Parameters and Secrets extension cache.
 
 ## 5. Audit log

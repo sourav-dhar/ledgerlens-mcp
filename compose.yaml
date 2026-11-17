@@ -41,6 +41,8 @@ services:
       DATABASE_URL: postgresql://kosha:kosha-local-only@db:5432/kosha
       # Local stack only; deployed keys come from Secrets Manager (ADR 0013).
       INTERNAL_SIGNING_KEYS: kosha-local-only-signing-key-not-secret
+      # Opens the PANs `poe seed` sealed (ADR 0014); deployed stacks use KMS instead.
+      PAN_KEYRING_PASSPHRASE: kosha-local-only-pan-keyring
     depends_on:
       db: { condition: service_healthy }
 

@@ -1,7 +1,11 @@
 """KYC profiles, their events and document metadata."""
 
+import hashlib
+from dataclasses import dataclass
+
 from core_api.db import Connection
 from core_api.schemas.kyc import KycDocument, KycEvent, KycProfile
+from kosha_domain.ids import IdPrefix, new_id
 
 # The newest profile is the one in force: Re-KYC opens a new profile rather than editing
 # the old one. Tokens are deliberately not selected.
@@ -34,6 +38,33 @@ _DOCUMENTS = """
 """
 
 
+# The PAN of the profile in force; NULL token means none was ever captured.
+_SEALED_PAN = """
+    SELECT kyc_id, pan_token, pan_last4
+    FROM kyc.kyc_profiles
+    WHERE customer_id = %s
+    ORDER BY created_at DESC, kyc_id DESC
+    LIMIT 1
+"""
+
+_RECORD_UNMASKING = """
+    INSERT INTO ops.audit_log (
+        audit_id, actor_sub, client_id, roles, tool_name, args_hash, resource_ids,
+        pii_unmasked, outcome, latency_ms
+    ) VALUES (
+        %(audit_id)s, %(actor)s, 'core-api', '{}', 'unmask_pan', %(args_hash)s,
+        %(resource_ids)s, true, 'success', %(latency_ms)s
+    )
+"""
+
+
+@dataclass(frozen=True, slots=True)
+class SealedPan:
+    kyc_id: str
+    token: str | None
+    last4: str | None
+
+
 class KycRepository:
     def __init__(self, conn: Connection) -> None:
         self._conn = conn
@@ -51,6 +82,27 @@ class KycRepository:
         events = await (await self._conn.execute(_EVENTS, [row["kyc_id"]])).fetchall()
         return KycProfile.model_validate(
             row | {"events": [KycEvent.model_validate(e) for e in events]}
+        )
+
+    async def sealed_pan(self, customer_id: str) -> SealedPan | None:
+        row = await (await self._conn.execute(_SEALED_PAN, [customer_id])).fetchone()
+        if row is None:
+            return None
+        return SealedPan(kyc_id=row["kyc_id"], token=row["pan_token"], last4=row["pan_last4"])
+
+    async def record_unmasking(
+        self, *, actor: str, customer_id: str, kyc_id: str, latency_ms: int
+    ) -> None:
+        """Audit a PAN unmasking inside the transaction that read the token."""
+        await self._conn.execute(
+            _RECORD_UNMASKING,
+            {
+                "audit_id": new_id(IdPrefix.AUDIT_RECORD),
+                "actor": actor,
+                "args_hash": hashlib.sha256(customer_id.encode()).hexdigest(),
+                "resource_ids": [customer_id, kyc_id],
+                "latency_ms": latency_ms,
+            },
         )
 
     async def documents(self, customer_id: str) -> list[KycDocument]:
