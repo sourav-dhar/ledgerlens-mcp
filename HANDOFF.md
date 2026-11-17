@@ -2,7 +2,7 @@
 
 > Read at the start of every session; rewrite at the end of every session. Durable lessons go to [MEMORY.md](MEMORY.md), standing rules to [CLAUDE.md](CLAUDE.md).
 
-**Last updated:** 2026-11-17 · **Current release:** v0.2.0 (v0.3.0 pending in #3) · **Phase complete:** P2 Core Banking API · **Next:** P3 MCP gateway
+**Last updated:** 2026-11-18 · **Current release:** v0.2.0 (v0.3.0 pending in #3) · **Phase complete:** P2 Core Banking API, plus plan v1.1 hardening · **Next:** P3 MCP gateway
 
 ## Where things stand
 
@@ -40,18 +40,25 @@
 | Insights | Kolkata calendar months, the one IST bucket in `core-api` |
 | Readiness | Ready only at the shipped Alembic head; the Lambda adapter waits on `/healthz` |
 
+## Before P3: plan v1.1 (done, #20 and #21)
+
+The design was audited against a full system-design checklist at the owner's request. [Plan v1.1](docs/plans/v1.1-system-design-hardening.md) records the result. The new [System design](docs/architecture/system-design.md) page maps every concern to its design and status. Rate limiting is now eight layers, weighted by tool cost and failing soft ([ADR 0015](docs/adr/0015-layered-rate-limits-weighted-and-fail-soft.md), resilience §6). Resilience §10 adds a self-healing catalogue (detect → contain → recover → verify). Idempotency is designed hop by hop (system design §8). In code: `ops.processed_events` (revision 0008), an idempotent `POST /v1/audit` on a gateway-minted `audit_id`, and `Idempotent-Replayed: true` on replays.
+
 ## Next session: P3 MCP gateway, test-first
 
-Read first: the [mcp-gateway LLD](docs/architecture/lld/mcp-gateway.md) (whole), plan v1.0 §4 (tools, scopes and roles) and §8, ADRs 0001, 0004, 0006 and 0013, and the core-api LLD §7–8 (the contract and failure matrix the client must handle).
+Read first: the [mcp-gateway LLD](docs/architecture/lld/mcp-gateway.md) (whole), plan v1.0 §4 (tools, scopes and roles) and §8, **plan v1.1 §3 (P3 row)**, resilience LLD §6 and §10, system design §8, ADRs 0001, 0004, 0006, 0013 and 0015, and the core-api LLD §7–8 (the contract and failure matrix the client must handle).
 
 1. Branch `feat/p3-<slug>` from an up-to-date `main`.
-2. **`clients/core_api.py`**: a typed httpx client whose auth flow signs the final encoded URL with `kosha_domain.signing.sign` (see `tests/support/signed.py`), mapping `core-api`'s error codes to the gateway taxonomy.
-3. **`auth/`**: Principal, scopes and the role table from plan §4; `kyc:pii` decides between `/kyc` (masked) and `/kyc/pan`.
-4. **`masking.py`** (pure) and **`cursors.py`** (HMAC-signed keyset positions, LLD §5).
-5. **Tools**, one module at a time, through FastMCP's in-memory `Client` against a real `core-api` app, each with its failure matrix.
-6. The audit middleware posts to `/v1/audit` and never fails the call.
+2. **`clients/core_api.py`**: a typed httpx client whose auth flow signs the final encoded URL with `kosha_domain.signing.sign` (see `tests/support/signed.py`), mapping `core-api`'s error codes to the gateway taxonomy. Writes are retried (2 attempts) only with their original `Idempotency-Key`.
+3. **`auth/`**: Principal, scopes and the role table from plan §4; `kyc:pii` decides between `/kyc` (masked) and `/kyc/pan`. JWKS refetch on an unknown `kid`.
+4. **`middleware/rate_limit.py`**: rate-limit layers 3–5 (per-principal and per-client buckets in DynamoDB, tool weights, `429` with `Retry-After` and `RateLimit` fields), falling back to per-instance buckets when DynamoDB fails. Test against LocalStack DynamoDB. Then load shedding (resilience §7).
+5. **`masking.py`** (pure) and **`cursors.py`** (HMAC-signed keyset positions, LLD §5).
+6. **Tools**, one module at a time, through FastMCP's in-memory `Client` against a real `core-api` app, each with its failure matrix.
+7. The audit middleware mints `audit_id` per tool call, posts to `/v1/audit` (retry-safe), and never fails the call.
 
 ## Open items
+
+- **Mermaid validation:** `mkdocs build --strict` does not parse diagrams, and this session could not run `mermaid.parse` (the tool's safety checks blocked loading Mermaid into headless Edge). The two diagrams added in #20 were checked by hand. A committed `poe docs-check` task (MEMORY.md, Deferred) would make this repeatable.
 
 - **Full seed:** stopped at about 600 Customers on 2026-11-14 to free memory; C: then had 7 GB free. Before retrying: free C: to at least 10 GB and agree a time when Docker can have the memory; `docker compose down -v && docker compose up -d db`, then `uv run poe seed` (about 1.5 hours). Then record the counts here and in the README, and merge release PR #3 (it will now carry P2 too).
 - **Seeding RDS (P6):** PANs sealed by the local keyring cannot be opened by KMS; seal under KMS when seeding a deployed database. The master user also needs `SET` on `session_replication_role`, or the load runs with triggers on.
