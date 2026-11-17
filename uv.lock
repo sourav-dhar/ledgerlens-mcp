@@ -816,6 +816,12 @@ requires-dist = [
 name = "kosha-domain"
 version = "0.2.0"
 source = { editable = "packages/kosha-domain" }
+dependencies = [
+    { name = "cryptography" },
+]
+
+[package.metadata]
+requires-dist = [{ name = "cryptography", specifier = ">=50" }]
 
 [[package]]
 name = "kosha-mcp-gateway"
