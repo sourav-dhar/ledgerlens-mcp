@@ -12,7 +12,8 @@ from kosha_domain.lifecycles import (
     CardStatus,
     KycStatus,
 )
-from kosha_domain.validators import is_valid_ifsc, is_valid_vpa
+from kosha_domain.validators import is_valid_ifsc, is_valid_pan, is_valid_vpa
+from kosha_domain.vault import LOCAL_PASSPHRASE, LocalKeyring, PanVault
 from kosha_domain.vocabulary import CustomerStatus, Persona, ProductCode, RiskCategory
 
 NOW = datetime(2026, 11, 12, 12, tzinfo=UTC)
@@ -140,6 +141,18 @@ def test_aadhaar_and_pan_are_stored_only_as_tokens_and_last_four(dataset: Batch)
             assert k.aadhaar_last4 is not None
             assert k.aadhaar_last4.isdigit()
             assert k.aadhaar_ref_token.startswith("vault:")
+
+
+def test_a_pan_token_opens_with_the_local_keyring_to_a_valid_pan(dataset: Batch) -> None:
+    vault = PanVault(LocalKeyring(LOCAL_PASSPHRASE))
+    sealed = [k for k in dataset.kyc_profiles if k.pan_token is not None]
+
+    assert sealed
+    for k in sealed:
+        assert k.pan_token is not None
+        pan = vault.decrypt(k.pan_token, customer_id=k.customer_id)
+        assert is_valid_pan(pan), pan
+        assert pan[-4:] == k.pan_last4
 
 
 def test_kyc_documents_belong_to_their_profile(dataset: Batch) -> None:
