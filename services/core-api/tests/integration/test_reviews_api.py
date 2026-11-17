@@ -76,6 +76,8 @@ async def test_a_retry_replays_the_first_response(
 
     assert (first.status_code, again.status_code) == (201, 200)
     assert again.json() == first.json()
+    assert again.headers["Idempotent-Replayed"] == "true"
+    assert "Idempotent-Replayed" not in first.headers
     reviews = committed.execute(
         "SELECT count(*) FROM ops.transaction_reviews WHERE txn_id = %s", [txn_id]
     ).fetchone()
