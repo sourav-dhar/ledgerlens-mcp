@@ -16,6 +16,10 @@ class AuditRecord(BaseModel):
 
     model_config = ConfigDict(extra="forbid", frozen=True)
 
+    audit_id: str = Field(
+        pattern=r"^aud_[0-7][0-9A-HJKMNP-TV-Z]{25}$",
+        description="Minted by the gateway once per tool call, so a retried write is stored once.",
+    )
     client_id: str = Field(min_length=1, max_length=128)
     roles: list[str] = Field(min_length=1)
     tool_name: str = Field(min_length=1, max_length=64)

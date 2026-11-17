@@ -15,6 +15,7 @@ from core_api.settings import Settings
 pytestmark = pytest.mark.anyio
 
 RECORD: dict[str, Any] = {
+    "audit_id": "aud_01JZ8Q4V9X2M3N4P5Q6R7S8T9V",
     "client_id": "claude-desktop",
     "roles": ["support_agent"],
     "tool_name": "search_transactions",
@@ -71,8 +72,10 @@ async def test_malformed_parameters_are_rejected(
         {"latency_ms": -1},
         {"roles": []},
         {"actor_sub": "someone-else"},
+        {"audit_id": "aud_123"},
+        {"audit_id": "cus_01JZ8Q4V9X2M3N4P5Q6R7S8T9V"},
     ],
-    ids=["hash", "outcome", "latency", "no roles", "actor in body"],
+    ids=["hash", "outcome", "latency", "no roles", "actor in body", "short id", "wrong prefix"],
 )
 async def test_a_malformed_audit_record_is_rejected(
     client: AsyncClient, change: dict[str, Any]

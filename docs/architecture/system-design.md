@@ -113,10 +113,10 @@ flowchart LR
 | Agent → gateway | The agent retries a write, with the same key or a new one | `idempotency_key` is required on write tools. Same key: replay. New key for the same intent: the domain refuses a second open dispute or review on one Transaction (`409`). Writes also need confirmation (elicitation) and a separate write scope | ✅ domain guard · P3 tool |
 | Gateway → `core-api` | Timeout after `core-api` committed | The gateway retries a write **with the same key** on connect errors, `503` and `504` (2 attempts); the retry gets the stored response | P3 |
 | Inside `core-api` | Two requests with one key at once | The second waits on the first's uncommitted key row, then replays; a different payload or caller is `409` | ✅ ADR 0007 |
-| `core-api` response | Client cannot tell a replay from a first write | `201` first, `200` on replay, plus `Idempotent-Replayed: true` | ✅ status · header now |
-| Gateway → `/v1/audit` | Retried audit write | The gateway mints `audit_id` per tool call; `core-api` inserts with `ON CONFLICT DO NOTHING` | Now |
+| `core-api` response | Client cannot tell a replay from a first write | `201` first, `200` on replay, plus `Idempotent-Replayed: true` | ✅ |
+| Gateway → `/v1/audit` | Retried audit write | The gateway mints `audit_id` per tool call; `core-api` inserts with `ON CONFLICT DO NOTHING` and replays the receipt; the same ID from another caller is `409` | ✅ core-api · P3 gateway |
 | Relay → SQS | Crash between send and marking published | Event re-sent with the same `event_id` | ✅ by design |
-| SQS → consumer | At-least-once delivery, DLQ redrive | `INSERT INTO ops.processed_events (event_id) ON CONFLICT DO NOTHING` in the consumer's own transaction; a conflict means skip | Table now · consumer P4 |
+| SQS → consumer | At-least-once delivery, DLQ redrive | `INSERT INTO ops.processed_events (consumer, event_id) ON CONFLICT DO NOTHING` in the consumer's own transaction; a conflict means skip | ✅ table (revision 0008) · P4 consumer |
 | Ledger postings | A reversal posted twice | `UNIQUE (txn_id, txn_initiated_at)` on `ledger.journal_entries`: one entry per Transaction | ✅ |
 | Key expiry | Retry after 24 hours | The key is reclaimable, so the domain guard is what stops a duplicate | ✅ |
 

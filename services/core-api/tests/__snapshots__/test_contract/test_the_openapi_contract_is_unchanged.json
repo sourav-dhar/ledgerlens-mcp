@@ -598,6 +598,12 @@
             "title": "Args Hash",
             "type": "string"
           },
+          "audit_id": {
+            "description": "Minted by the gateway once per tool call, so a retried write is stored once.",
+            "pattern": "^aud_[0-7][0-9A-HJKMNP-TV-Z]{25}$",
+            "title": "Audit Id",
+            "type": "string"
+          },
           "client_id": {
             "maxLength": 128,
             "minLength": 1,
@@ -665,6 +671,7 @@
           }
         },
         "required": [
+          "audit_id",
           "client_id",
           "roles",
           "tool_name",
@@ -3830,7 +3837,7 @@
     },
     "/v1/audit": {
       "post": {
-        "description": "Append one record under the signed caller's name.\n\nNever joined with a business write (LLD core-api §3), so an audit failure cannot roll\nback the call it describes, and the gateway treats a failure here as non-fatal.",
+        "description": "Append one record under the signed caller's name, once per ``audit_id``.\n\nNever joined with a business write (LLD core-api §3), so an audit failure cannot roll\nback the call it describes, and the gateway treats a failure here as non-fatal. The\ngateway mints ``audit_id`` per tool call and may retry; a retry answers ``200`` with\n``Idempotent-Replayed: true`` and the original receipt.",
         "operationId": "record_tool_call_v1_audit_post",
         "requestBody": {
           "content": {
@@ -3843,6 +3850,9 @@
           "required": true
         },
         "responses": {
+          "200": {
+            "description": "Replay: this audit_id was already recorded"
+          },
           "201": {
             "content": {
               "application/json": {
@@ -3852,6 +3862,9 @@
               }
             },
             "description": "Successful Response"
+          },
+          "409": {
+            "description": "This audit_id was recorded for another caller"
           },
           "422": {
             "content": {
@@ -4265,7 +4278,7 @@
         },
         "responses": {
           "200": {
-            "description": "Replay: the stored response to an earlier request with this key"
+            "description": "Replay: the stored response to an earlier request with this key, marked `Idempotent-Replayed: true`"
           },
           "201": {
             "content": {
@@ -4515,7 +4528,7 @@
         },
         "responses": {
           "200": {
-            "description": "Replay: the stored response to an earlier request with this key"
+            "description": "Replay: the stored response to an earlier request with this key, marked `Idempotent-Replayed: true`"
           },
           "201": {
             "content": {

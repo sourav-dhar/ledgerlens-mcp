@@ -21,7 +21,10 @@ IdempotencyKey = Annotated[
 ]
 
 _RESPONSES: dict[int | str, dict[str, Any]] = {
-    200: {"description": "Replay: the stored response to an earlier request with this key"},
+    200: {
+        "description": "Replay: the stored response to an earlier request with this key,"
+        " marked `Idempotent-Replayed: true`"
+    },
     400: {"description": "Invalid argument"},
     404: {"description": "No such Transaction"},
     409: {
@@ -46,6 +49,7 @@ async def raise_dispute(
         written = await CaseService(conn, caller).raise_dispute(idempotency_key, body)
     if written.replayed:
         response.status_code = 200
+        response.headers["Idempotent-Replayed"] = "true"
     return written.value
 
 
@@ -68,4 +72,5 @@ async def flag_transaction(
         written = await CaseService(conn, caller).flag_transaction(idempotency_key, body)
     if written.replayed:
         response.status_code = 200
+        response.headers["Idempotent-Replayed"] = "true"
     return written.value

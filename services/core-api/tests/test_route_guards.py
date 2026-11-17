@@ -40,6 +40,7 @@ _BODY: dict[str, dict[str, Any]] = {
     "/v1/disputes": {"txn_id": _PATH_VALUES["txn_id"], "reason_code": "duplicate"},
     "/v1/reviews": {"txn_id": _PATH_VALUES["txn_id"], "reason": "Velocity spike"},
     "/v1/audit": {
+        "audit_id": new_id(IdPrefix.AUDIT_RECORD),
         "client_id": "claude-desktop",
         "roles": ["analyst"],
         "tool_name": "search_transactions",

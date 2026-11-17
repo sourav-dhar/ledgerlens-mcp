@@ -123,7 +123,7 @@ After the key is claimed, the Transaction is locked `FOR UPDATE`, so two writes 
 | `POST /v1/disputes` | Only a debit that moved money (`kosha_domain.disputes.is_disputable`: not in flight, not declined, cancelled or expired); amount ≤ the Transaction's; no other open dispute on it; `tat_due_at` = `initiated_at` + the rail's RBI turnaround (T+1, or T+5 for ATM and cards); emits `DisputeRaised` |
 | `POST /v1/reviews` | No other open review on it; sets `is_flagged`; emits `TransactionFlagged` |
 
-The first response is `201`; a replay is `200` with the stored body.
+The first response is `201`; a replay is `200` with the stored body and `Idempotent-Replayed: true`. `POST /v1/audit` follows the same rule on the `audit_id` the gateway mints per tool call, so a retried audit write is stored once; the same `audit_id` from another caller is `409`.
 
 ## 5. Ledger posting algorithm
 
