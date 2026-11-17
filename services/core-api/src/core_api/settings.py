@@ -35,6 +35,9 @@ class Settings(BaseSettings):
     db_statement_timeout_ms: int = Field(default=3_000, gt=0)
     """Server-side cap on any one statement; exceeding it answers `504`."""
 
+    pan_keyring_passphrase: SecretStr | None = None
+    """Local keyring for PAN unmasking (ADR 0014); KMS replaces it in P6. Unset: `503`."""
+
     internal_signing_keys: SecretStr | None = None
     """Comma-separated keys the gateway signs requests with, current first (ADR 0013).
 

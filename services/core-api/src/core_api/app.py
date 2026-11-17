@@ -19,6 +19,7 @@ from core_api.routers.kb import router as kb_router
 from core_api.routers.kyc import router as kyc_router
 from core_api.routers.transactions import router as transactions_router
 from core_api.settings import Settings
+from kosha_domain.vault import LocalKeyring, PanVault
 
 
 def create_app(settings: Settings | None = None) -> FastAPI:
@@ -41,6 +42,10 @@ def create_app(settings: Settings | None = None) -> FastAPI:
     app = FastAPI(title="Kosha Core Banking API", version=__version__, lifespan=lifespan)
     app.state.settings = settings
     app.state.database = None  # until the lifespan has opened the pool
+    passphrase = settings.pan_keyring_passphrase
+    app.state.pan_vault = (
+        None if passphrase is None else PanVault(LocalKeyring(passphrase.get_secret_value()))
+    )
     install_error_handlers(app)
     app.include_router(health_router)
     app.include_router(customers_router)

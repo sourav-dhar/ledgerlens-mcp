@@ -16,6 +16,7 @@ from core_api.app import create_app
 from core_api.db import Database
 from core_api.migrations import upgrade
 from core_api.settings import Settings
+from kosha_domain.vault import LOCAL_PASSPHRASE
 
 _SCRATCH = "kosha_api_test"
 
@@ -46,6 +47,7 @@ def api_settings(api_database_url: str) -> Settings:
     return Settings(
         database_url=SecretStr(api_database_url),
         internal_signing_keys=SecretStr(TEST_KEY),
+        pan_keyring_passphrase=SecretStr(LOCAL_PASSPHRASE),
         db_pool_timeout_s=0.5,
     )
 

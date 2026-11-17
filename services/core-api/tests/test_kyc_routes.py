@@ -23,13 +23,26 @@ async def client() -> AsyncIterator[AsyncClient]:
         yield c
 
 
-@pytest.mark.parametrize("suffix", ["kyc", "kyc/documents"])
+@pytest.mark.parametrize("suffix", ["kyc", "kyc/documents", "kyc/pan"])
 async def test_a_malformed_customer_id_is_an_invalid_argument(
     client: AsyncClient, suffix: str
 ) -> None:
     response = await client.get(f"/v1/customers/{new_id(IdPrefix.ACCOUNT)}/{suffix}")
 
     assert response.status_code == 400
+
+
+async def test_unmasking_without_a_keyring_is_unavailable(client: AsyncClient) -> None:
+    response = await client.get(f"/v1/customers/{new_id(IdPrefix.CUSTOMER)}/kyc/pan")
+
+    assert response.status_code == 503
+    assert "PAN unmasking is not configured" in response.json()["error"]["message"]
+
+
+def test_the_keyring_passphrase_never_appears_in_settings_output() -> None:
+    settings = Settings(pan_keyring_passphrase=SecretStr("do-not-print-me"))
+
+    assert "do-not-print-me" not in repr(settings)
 
 
 @pytest.mark.parametrize("suffix", ["kyc", "kyc/documents"])

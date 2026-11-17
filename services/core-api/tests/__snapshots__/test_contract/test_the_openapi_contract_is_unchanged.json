@@ -3031,6 +3031,35 @@
         "title": "Typology",
         "type": "string"
       },
+      "UnmaskedPan": {
+        "description": "The full PAN, for callers the gateway granted ``kyc:pii``; every read is audited.",
+        "properties": {
+          "customer_id": {
+            "title": "Customer Id",
+            "type": "string"
+          },
+          "kyc_id": {
+            "title": "Kyc Id",
+            "type": "string"
+          },
+          "pan": {
+            "title": "Pan",
+            "type": "string"
+          },
+          "pan_last4": {
+            "title": "Pan Last4",
+            "type": "string"
+          }
+        },
+        "required": [
+          "customer_id",
+          "kyc_id",
+          "pan",
+          "pan_last4"
+        ],
+        "title": "UnmaskedPan",
+        "type": "object"
+      },
       "ValidationError": {
         "properties": {
           "ctx": {
@@ -4141,6 +4170,66 @@
           }
         ],
         "summary": "List a Customer's KYC documents",
+        "tags": [
+          "kyc"
+        ]
+      }
+    },
+    "/v1/customers/{customer_id}/kyc/pan": {
+      "get": {
+        "description": "The full PAN of the profile in force. The gateway calls this only for ``kyc:pii``.\n\nThe token is opened and an audit record (``pii_unmasked``) written in one transaction,\nso a PAN is never returned without a record, even if the gateway's own audit write\nfails. A token that will not open for this Customer is a defect (``500``) and leaves no\nrecord, because nothing was revealed.",
+        "operationId": "unmask_pan_v1_customers__customer_id__kyc_pan_get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "customer_id",
+            "required": true,
+            "schema": {
+              "title": "Customer Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/UnmaskedPan"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "400": {
+            "description": "Invalid argument"
+          },
+          "404": {
+            "description": "No such Customer, or no KYC profile"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          },
+          "503": {
+            "description": "Database unavailable; retry shortly"
+          },
+          "504": {
+            "description": "Deadline exceeded"
+          }
+        },
+        "security": [
+          {
+            "GatewaySignature": []
+          }
+        ],
+        "summary": "Unmask a Customer's PAN",
         "tags": [
           "kyc"
         ]

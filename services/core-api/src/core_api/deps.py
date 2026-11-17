@@ -11,6 +11,7 @@ from core_api.errors import InvalidArgumentError, UnauthenticatedError, Unavaila
 from core_api.settings import Settings
 from kosha_domain.ids import IdPrefix, is_valid_id
 from kosha_domain.signing import ACTOR, KB_CEILING, SIGNATURE, TIMESTAMP, SignatureError, verify
+from kosha_domain.vault import PanVault
 
 
 def _database(request: Request) -> Database | None:
@@ -75,5 +76,11 @@ async def _caller(
     return Caller(actor=principal.actor, kb_ceiling=principal.kb_ceiling)
 
 
+def _pan_vault(request: Request) -> PanVault | None:
+    vault: PanVault | None = request.app.state.pan_vault
+    return vault
+
+
 DatabaseDep = Annotated[Database | None, Depends(_database)]
+PanVaultDep = Annotated[PanVault | None, Depends(_pan_vault)]
 CallerDep = Annotated[Caller, Depends(_caller)]
