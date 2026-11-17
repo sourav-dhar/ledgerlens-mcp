@@ -560,6 +560,121 @@
         "title": "AmlRule",
         "type": "object"
       },
+      "AuditOutcome": {
+        "enum": [
+          "success",
+          "denied",
+          "error"
+        ],
+        "title": "AuditOutcome",
+        "type": "string"
+      },
+      "AuditReceipt": {
+        "properties": {
+          "audit_id": {
+            "title": "Audit Id",
+            "type": "string"
+          },
+          "occurred_at": {
+            "format": "date-time",
+            "title": "Occurred At",
+            "type": "string"
+          }
+        },
+        "required": [
+          "audit_id",
+          "occurred_at"
+        ],
+        "title": "AuditReceipt",
+        "type": "object"
+      },
+      "AuditRecord": {
+        "additionalProperties": false,
+        "description": "What the gateway reports about one tool call.\n\nThe actor is not a field: it is the signed ``X-Kosha-Actor``, so a record can never be\nwritten in someone else's name.",
+        "properties": {
+          "args_hash": {
+            "description": "SHA-256 of the arguments.",
+            "pattern": "^[0-9a-f]{64}$",
+            "title": "Args Hash",
+            "type": "string"
+          },
+          "client_id": {
+            "maxLength": 128,
+            "minLength": 1,
+            "title": "Client Id",
+            "type": "string"
+          },
+          "error_code": {
+            "anyOf": [
+              {
+                "maxLength": 64,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Error Code"
+          },
+          "latency_ms": {
+            "minimum": 0.0,
+            "title": "Latency Ms",
+            "type": "integer"
+          },
+          "outcome": {
+            "$ref": "#/components/schemas/AuditOutcome"
+          },
+          "pii_unmasked": {
+            "default": false,
+            "title": "Pii Unmasked",
+            "type": "boolean"
+          },
+          "resource_ids": {
+            "default": [],
+            "items": {
+              "type": "string"
+            },
+            "title": "Resource Ids",
+            "type": "array"
+          },
+          "roles": {
+            "items": {
+              "type": "string"
+            },
+            "minItems": 1,
+            "title": "Roles",
+            "type": "array"
+          },
+          "tool_name": {
+            "maxLength": 64,
+            "minLength": 1,
+            "title": "Tool Name",
+            "type": "string"
+          },
+          "trace_id": {
+            "anyOf": [
+              {
+                "maxLength": 128,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Trace Id"
+          }
+        },
+        "required": [
+          "client_id",
+          "roles",
+          "tool_name",
+          "args_hash",
+          "outcome",
+          "latency_ms"
+        ],
+        "title": "AuditRecord",
+        "type": "object"
+      },
       "Card": {
         "properties": {
           "atm_limit_paise": {
@@ -696,6 +811,17 @@
           "api"
         ],
         "title": "Channel",
+        "type": "string"
+      },
+      "Classification": {
+        "description": "How sensitive a Document is, from least to most (see GLOSSARY: Classification).\n\nDeclaration order is significant: the database enum keeps it, and row-level security\nlets a caller read chunks at or below their ceiling.",
+        "enum": [
+          "public",
+          "internal",
+          "confidential",
+          "restricted"
+        ],
+        "title": "Classification",
         "type": "string"
       },
       "CustomerProfile": {
@@ -928,6 +1054,22 @@
         "title": "CustomerSummary",
         "type": "object"
       },
+      "Department": {
+        "description": "The Kosha department that owns a Document (see GLOSSARY: Department).",
+        "enum": [
+          "compliance",
+          "onboarding",
+          "legal",
+          "risk",
+          "customer_support",
+          "sales",
+          "marketing",
+          "engineering",
+          "company"
+        ],
+        "title": "Department",
+        "type": "string"
+      },
       "Direction": {
         "description": "Whether a Transaction takes money out of the Account or brings it in.",
         "enum": [
@@ -1032,6 +1174,59 @@
         "title": "DisputeStatus",
         "type": "string"
       },
+      "DocumentChunk": {
+        "properties": {
+          "chunk_index": {
+            "title": "Chunk Index",
+            "type": "integer"
+          },
+          "content": {
+            "title": "Content",
+            "type": "string"
+          },
+          "section_path": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Section Path"
+          }
+        },
+        "required": [
+          "chunk_index",
+          "section_path",
+          "content"
+        ],
+        "title": "DocumentChunk",
+        "type": "object"
+      },
+      "DocumentStatus": {
+        "enum": [
+          "draft",
+          "effective",
+          "superseded"
+        ],
+        "title": "DocumentStatus",
+        "type": "string"
+      },
+      "DocumentType": {
+        "enum": [
+          "policy",
+          "sop",
+          "runbook",
+          "playbook",
+          "api_reference",
+          "guideline",
+          "faq",
+          "template"
+        ],
+        "title": "DocumentType",
+        "type": "string"
+      },
       "FlagTransaction": {
         "additionalProperties": false,
         "properties": {
@@ -1117,6 +1312,100 @@
         ],
         "title": "IncomeBand",
         "type": "string"
+      },
+      "KbDocument": {
+        "properties": {
+          "chunks": {
+            "items": {
+              "$ref": "#/components/schemas/DocumentChunk"
+            },
+            "title": "Chunks",
+            "type": "array"
+          },
+          "classification": {
+            "$ref": "#/components/schemas/Classification"
+          },
+          "department": {
+            "$ref": "#/components/schemas/Department"
+          },
+          "doc_code": {
+            "title": "Doc Code",
+            "type": "string"
+          },
+          "doc_type": {
+            "$ref": "#/components/schemas/DocumentType"
+          },
+          "effective_date": {
+            "format": "date",
+            "title": "Effective Date",
+            "type": "string"
+          },
+          "owner_role": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Owner Role"
+          },
+          "regulatory_refs": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Regulatory Refs",
+            "type": "array"
+          },
+          "review_due": {
+            "anyOf": [
+              {
+                "format": "date",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Review Due"
+          },
+          "status": {
+            "$ref": "#/components/schemas/DocumentStatus"
+          },
+          "tags": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Tags",
+            "type": "array"
+          },
+          "title": {
+            "title": "Title",
+            "type": "string"
+          },
+          "version": {
+            "title": "Version",
+            "type": "string"
+          }
+        },
+        "required": [
+          "doc_code",
+          "title",
+          "department",
+          "doc_type",
+          "version",
+          "status",
+          "effective_date",
+          "review_due",
+          "owner_role",
+          "classification",
+          "regulatory_refs",
+          "tags",
+          "chunks"
+        ],
+        "title": "KbDocument",
+        "type": "object"
       },
       "KeysetPosition": {
         "description": "The last row of a page; pass it back as ``after_*`` to read the next one.",
@@ -1766,6 +2055,92 @@
         ],
         "title": "RiskCategory",
         "type": "string"
+      },
+      "SearchHit": {
+        "properties": {
+          "citation": {
+            "title": "Citation",
+            "type": "string"
+          },
+          "classification": {
+            "$ref": "#/components/schemas/Classification"
+          },
+          "content": {
+            "title": "Content",
+            "type": "string"
+          },
+          "department": {
+            "$ref": "#/components/schemas/Department"
+          },
+          "doc_code": {
+            "title": "Doc Code",
+            "type": "string"
+          },
+          "effective_date": {
+            "format": "date",
+            "title": "Effective Date",
+            "type": "string"
+          },
+          "score": {
+            "title": "Score",
+            "type": "number"
+          },
+          "section_path": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Section Path"
+          },
+          "title": {
+            "title": "Title",
+            "type": "string"
+          },
+          "version": {
+            "title": "Version",
+            "type": "string"
+          }
+        },
+        "required": [
+          "doc_code",
+          "title",
+          "version",
+          "effective_date",
+          "department",
+          "classification",
+          "section_path",
+          "content",
+          "score",
+          "citation"
+        ],
+        "title": "SearchHit",
+        "type": "object"
+      },
+      "SearchResults": {
+        "properties": {
+          "results": {
+            "items": {
+              "$ref": "#/components/schemas/SearchHit"
+            },
+            "title": "Results",
+            "type": "array"
+          },
+          "retrieval": {
+            "const": "full_text",
+            "title": "Retrieval",
+            "type": "string"
+          }
+        },
+        "required": [
+          "retrieval",
+          "results"
+        ],
+        "title": "SearchResults",
+        "type": "object"
       },
       "Segment": {
         "description": "The commercial tier a Customer is served in (see GLOSSARY: Segment).",
@@ -3424,6 +3799,59 @@
         ]
       }
     },
+    "/v1/audit": {
+      "post": {
+        "description": "Append one record under the signed caller's name.\n\nNever joined with a business write (LLD core-api §3), so an audit failure cannot roll\nback the call it describes, and the gateway treats a failure here as non-fatal.",
+        "operationId": "record_tool_call_v1_audit_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AuditRecord"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AuditReceipt"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          },
+          "503": {
+            "description": "Database unavailable; the gateway logs and meters the miss"
+          },
+          "504": {
+            "description": "Deadline exceeded"
+          }
+        },
+        "security": [
+          {
+            "GatewaySignature": []
+          }
+        ],
+        "summary": "Record a tool call",
+        "tags": [
+          "audit"
+        ]
+      }
+    },
     "/v1/customers": {
       "get": {
         "description": "Customers matching every criterion given, in name order.",
@@ -3794,6 +4222,177 @@
         "summary": "Raise a dispute",
         "tags": [
           "cases"
+        ]
+      }
+    },
+    "/v1/kb/documents/{doc_code}": {
+      "get": {
+        "description": "The document with its chunks in order. Above the ceiling it reads as missing.",
+        "operationId": "get_document_v1_kb_documents__doc_code__get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "doc_code",
+            "required": true,
+            "schema": {
+              "title": "Doc Code",
+              "type": "string"
+            }
+          },
+          {
+            "description": "Defaults to the effective version.",
+            "in": "query",
+            "name": "version",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "pattern": "^[0-9]+(\\.[0-9]+)*$",
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Defaults to the effective version.",
+              "title": "Version"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/KbDocument"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "400": {
+            "description": "Invalid argument"
+          },
+          "404": {
+            "description": "No such document within the caller's ceiling"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          },
+          "503": {
+            "description": "Database unavailable; retry shortly"
+          },
+          "504": {
+            "description": "Deadline exceeded"
+          }
+        },
+        "security": [
+          {
+            "GatewaySignature": []
+          }
+        ],
+        "summary": "Get a knowledge-base document",
+        "tags": [
+          "knowledge base"
+        ]
+      }
+    },
+    "/v1/kb/search": {
+      "get": {
+        "description": "Passages from effective documents, best first; nothing above the caller's ceiling.",
+        "operationId": "search_knowledge_base_v1_kb_search_get",
+        "parameters": [
+          {
+            "description": "Words or a quoted phrase.",
+            "in": "query",
+            "name": "q",
+            "required": true,
+            "schema": {
+              "description": "Words or a quoted phrase.",
+              "maxLength": 200,
+              "minLength": 2,
+              "title": "Q",
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "department",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "items": {
+                    "$ref": "#/components/schemas/Department"
+                  },
+                  "type": "array"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Department"
+            }
+          },
+          {
+            "in": "query",
+            "name": "limit",
+            "required": false,
+            "schema": {
+              "default": 8,
+              "maximum": 20,
+              "minimum": 1,
+              "title": "Limit",
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SearchResults"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "400": {
+            "description": "Invalid argument"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          },
+          "503": {
+            "description": "Database unavailable; retry shortly"
+          },
+          "504": {
+            "description": "Deadline exceeded"
+          }
+        },
+        "security": [
+          {
+            "GatewaySignature": []
+          }
+        ],
+        "summary": "Search the knowledge base",
+        "tags": [
+          "knowledge base"
         ]
       }
     },
