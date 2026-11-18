@@ -22,4 +22,4 @@ uv run poe up                               # local stack: gateway :8700, core A
 
 ## Pull requests
 
-CI must pass: lint and types, tests with coverage, dependency audit, secret scan, arm64 image build with smoke test and Trivy scan, and a strict docs build.
+CI must pass: lint and types, tests with coverage, dependency audit, secret scan, arm64 image build with smoke test and Trivy scan, and a strict docs build in which every Mermaid diagram must parse (`uv run poe docs-check` runs that check locally; it needs Node.js 20+).

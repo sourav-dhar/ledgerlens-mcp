@@ -227,3 +227,6 @@ jobs:
         env:
           NO_MKDOCS_2_WARNING: "1"
         run: uv run --locked --only-group docs mkdocs build --strict
+      # The strict build never parses a diagram; Mermaid's own CLI does (Node is on the runner).
+      - name: Parse Mermaid diagrams
+        run: python3 scripts/check_mermaid.py

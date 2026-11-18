@@ -4,6 +4,7 @@
 
 ## Lessons learned
 
+- **2026-11-18 — Parse diagrams with the major version the site renders.** `poe docs-check` and the CI Docs build run `@mermaid-js/mermaid-cli@11.17.1` over every Markdown file with a diagram; the 12.x CLI bundles Mermaid 12, but MkDocs Material renders Mermaid 11, and a validator newer than the renderer can pass diagrams the site then breaks on.
 - **2026-11-17 — Unit-only coverage drifts down as database code grows.** Repositories and routes are exercised by the integration suite, which the gate did not count, so coverage fell to 89.5% with the tests still thorough. CI now combines unit and integration coverage data (`COVERAGE_FILE` per job, `coverage combine`) before the 90% gate; combined it is 99%.
 - **2026-11-17 — Cases that commit to a shared database must not share data.** Three parametrised ceiling cases each committed four documents with the same search word to the session's scratch database, so later cases counted earlier rows. Give each case its own data (a word, an ID), and make default test identifiers wide enough not to collide (`doc_code` had 3 random digits).
 - **2026-11-17 — FastAPI 0.162 includes routers lazily.** `app.routes` holds `_IncludedRouter` placeholders, not `APIRoute`s, until resolved. Enumerate routes from `app.openapi()["paths"]`, which is the published contract anyway.
@@ -51,7 +52,6 @@
 ## Deferred
 
 - **Find a Transaction by ID without probing every partition.** `GET /v1/transactions/{id}` checks each monthly partition's primary-key index. If the generator and the write path guarantee that a `txn_` ULID's timestamp equals `initiated_at`, the month can be derived from the ID and the lookup pruned to one partition.
-- **Commit a Mermaid validation script.** Done ad hoc twice now (headless Edge + `mermaid.parse`); a `poe docs-check` task would make it repeatable and catch escaping slips in the throwaway page.
 - **Distroless runtime image** — removes apt/perl/shell CVE classes and shrinks the image; costs a rework of how the venv is copied and shell-less debugging. Candidate ADR.
 - **Image signing and SBOM attestation** (cosign / GitHub attestations) once images are pushed to ECR in P6.
 - **MkDocs Material reaches end of life on 2027-05-05**; its successor Zensical reads `mkdocs.yml`. Revisit in P8.

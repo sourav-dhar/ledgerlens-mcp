@@ -58,6 +58,8 @@ ignore = ["PLR0913", "TRY003"]
 # The generator is distributions: its literals are probabilities, weights and amounts, and its
 # seeded random.Random is the point (reproducible synthetic data, never security).
 "packages/kosha-datagen/src/**" = ["PLR2004", "S311"]
+# Command-line helpers report to the terminal.
+"scripts/**" = ["T201"]
 # Alembic revisions are named by number, and are loaded by path rather than imported.
 "**/migrations/versions/*.py" = ["N999"]
 # Diagram generator is a docs build tool, not product code: allow its terse drawing style.
@@ -115,4 +117,5 @@ seed = { sequence = ["migrate", "seed-data"], help = "Migrate, then load the ful
 up = { cmd = "docker compose up --build -d", help = "Start the local stack" }
 down = { cmd = "docker compose down", help = "Stop the local stack" }
 docs = { cmd = "mkdocs serve", help = "Preview the docs site" }
+docs-check = { cmd = "python scripts/check_mermaid.py", help = "Parse every Mermaid diagram with Mermaid's CLI (needs Node.js 20+)" }
 tunnel = { cmd = "ngrok http 8700", help = "Expose the local MCP gateway (dev only)" }
