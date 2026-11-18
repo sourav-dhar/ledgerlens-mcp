@@ -58,7 +58,6 @@ Read first: the [mcp-gateway LLD](docs/architecture/lld/mcp-gateway.md) (whole),
 
 ## Open items
 
-- **Mermaid validation:** `mkdocs build --strict` does not parse diagrams, and this session could not run `mermaid.parse` (the tool's safety checks blocked loading Mermaid into headless Edge). The two diagrams added in #20 were checked by hand. A committed `poe docs-check` task (MEMORY.md, Deferred) would make this repeatable.
 
 - **Full seed:** stopped at about 600 Customers on 2026-11-14 to free memory; C: then had 7 GB free. Before retrying: free C: to at least 10 GB and agree a time when Docker can have the memory; `docker compose down -v && docker compose up -d db`, then `uv run poe seed` (about 1.5 hours). Then record the counts here and in the README, and merge release PR #3 (it will now carry P2 too).
 - **Seeding RDS (P6):** PANs sealed by the local keyring cannot be opened by KMS; seal under KMS when seeding a deployed database. The master user also needs `SET` on `session_replication_role`, or the load runs with triggers on.
