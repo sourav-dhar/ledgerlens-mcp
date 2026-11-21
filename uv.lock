@@ -829,6 +829,8 @@ version = "0.2.0"
 source = { editable = "services/mcp-gateway" }
 dependencies = [
     { name = "fastmcp" },
+    { name = "httpx" },
+    { name = "kosha-domain" },
     { name = "pydantic-settings" },
     { name = "uvicorn", extra = ["standard"] },
 ]
@@ -836,6 +838,8 @@ dependencies = [
 [package.metadata]
 requires-dist = [
     { name = "fastmcp", specifier = ">=4.1" },
+    { name = "httpx", specifier = ">=0.28.1" },
+    { name = "kosha-domain", editable = "packages/kosha-domain" },
     { name = "pydantic-settings", specifier = ">=2.16" },
     { name = "uvicorn", extras = ["standard"], specifier = ">=0.54" },
 ]
