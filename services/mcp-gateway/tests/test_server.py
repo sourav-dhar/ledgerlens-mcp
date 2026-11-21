@@ -56,7 +56,9 @@ async def test_unknown_tool_is_an_error(client: McpClient) -> None:
     assert result.is_error
 
 
-async def test_unexpected_arguments_are_rejected(client: McpClient) -> None:
+async def test_unexpected_arguments_are_an_invalid_argument(client: McpClient) -> None:
     result = await client.call_tool("get_service_health", {"surprise": 1}, raise_on_error=False)
 
     assert result.is_error
+    assert result.structured_content is not None
+    assert result.structured_content["error"]["code"] == "invalid_argument"

@@ -9,6 +9,7 @@ from starlette.requests import Request
 from starlette.responses import JSONResponse
 
 from mcp_gateway import SERVICE_NAME, __version__
+from mcp_gateway.errors import ErrorResults
 
 INSTRUCTIONS = """\
 LedgerLens gives Kosha Financial staff read access to customers, accounts,
@@ -69,6 +70,7 @@ def create_server() -> FastMCP:
         mask_error_details=True,
         strict_input_validation=True,
     )
+    mcp.add_middleware(ErrorResults())
     mcp.tool(get_service_health, title="Service health", annotations=READ_ONLY)
     mcp.custom_route("/healthz", methods=["GET"], include_in_schema=False)(_healthz)
     mcp.custom_route("/readyz", methods=["GET"], include_in_schema=False)(_readyz)
