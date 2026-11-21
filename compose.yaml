@@ -61,6 +61,11 @@ services:
       args: { SERVICE: mcp-gateway }
     image: ledgerlens/mcp-gateway:local
     ports: ["127.0.0.1:${GATEWAY_PORT:-8700}:8080"]
+    environment:
+      <<: *env
+      CORE_API_URL: http://core-api:8080
+      # Must equal core-api's current INTERNAL_SIGNING_KEYS entry (ADR 0013).
+      INTERNAL_SIGNING_KEY: kosha-local-only-signing-key-not-secret
     depends_on:
       core-api: { condition: service_healthy }
       screening-sim: { condition: service_healthy }

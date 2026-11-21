@@ -58,3 +58,25 @@ ROLE_KB_CEILING: Mapping[Role, Classification] = MappingProxyType(
     }
 )
 """The most sensitive Documents each Role may read; enforced by row-level security."""
+
+TOOL_SCOPES: Mapping[str, Scope] = MappingProxyType(
+    {
+        "search_customers": Scope.CUSTOMERS_READ,
+        "get_customer_profile": Scope.CUSTOMERS_READ,
+        "get_kyc_status": Scope.KYC_READ,
+        "list_kyc_documents": Scope.KYC_READ,
+        "get_account_summary": Scope.TRANSACTIONS_READ,
+        "search_transactions": Scope.TRANSACTIONS_READ,
+        "get_transaction": Scope.TRANSACTIONS_READ,
+        "get_spending_insights": Scope.TRANSACTIONS_READ,
+        "list_aml_alerts": Scope.AML_READ,
+        "get_aml_alert": Scope.AML_READ,
+        "screen_entity": Scope.SCREENING_RUN,
+        "raise_dispute": Scope.DISPUTES_WRITE,
+        "flag_transaction_for_review": Scope.REVIEWS_WRITE,
+        "search_knowledge_base": Scope.KB_READ,
+        "get_document": Scope.KB_READ,
+        "get_service_health": Scope.CUSTOMERS_READ,
+    }
+)
+"""The scope each tool requires (LLD §6). A tool missing here cannot be called."""
