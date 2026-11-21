@@ -10,7 +10,7 @@ services/mcp-gateway/src/mcp_gateway/
 ├── settings.py          # pydantic-settings; every timeout and limit is explicit
 ├── auth/
 │   ├── provider.py      # FastMCP Cognito / OAuth-proxy provider wiring
-│   ├── principal.py     # Principal(sub, client_id, roles, scopes, kb_ceiling)
+│   ├── principal.py     # Principal(sub, client_id, role, scopes); one Role, scopes capped by it (ADR 0016)
 │   └── scopes.py        # Scope enum, ROLE_SCOPES, require(scope) helper
 ├── middleware/
 │   ├── rate_limit.py    # DynamoDB token bucket -> 429 + Retry-After
