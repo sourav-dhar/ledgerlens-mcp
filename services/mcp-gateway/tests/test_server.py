@@ -5,9 +5,9 @@ from collections.abc import AsyncIterator
 import pytest
 from fastmcp import Client
 from fastmcp.client.transports import FastMCPTransport
+from gateway_harness import FakeCoreApi, access_token, gateway
 
 from mcp_gateway import __version__
-from mcp_gateway.server import create_server
 
 pytestmark = pytest.mark.anyio
 
@@ -16,7 +16,7 @@ type McpClient = Client[FastMCPTransport]
 
 @pytest.fixture
 async def client() -> AsyncIterator[McpClient]:
-    async with Client(create_server()) as c:
+    async with Client(gateway(FakeCoreApi(), access_token())) as c:
         yield c
 
 
@@ -56,7 +56,9 @@ async def test_unknown_tool_is_an_error(client: McpClient) -> None:
     assert result.is_error
 
 
-async def test_unexpected_arguments_are_rejected(client: McpClient) -> None:
+async def test_unexpected_arguments_are_an_invalid_argument(client: McpClient) -> None:
     result = await client.call_tool("get_service_health", {"surprise": 1}, raise_on_error=False)
 
     assert result.is_error
+    assert result.structured_content is not None
+    assert result.structured_content["error"]["code"] == "invalid_argument"

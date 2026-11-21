@@ -4,6 +4,12 @@
 
 ## Lessons learned
 
+- **2026-11-21 — A stage that starts failing closed breaks anonymous callers elsewhere.** The image smoke test called a tool without identity and expected success; once `Authorize` landed it failed in CI only. When adding an authentication or authorization stage, grep CI, compose and scripts for anonymous calls, and make smoke tests assert the security property (refused) rather than the happy path.
+- **2026-11-21 — FastMCP masks any exception that is not a `ToolError` before middleware sees it.** It logs the traceback and raises a generic `ToolError`, so middleware cannot tell a not-found from a crash. Gateway errors subclass `ToolError` (re-raised untouched, logged at their own `log_level`), and the `ErrorResults` middleware renders them; error results skip output-schema validation in the Python and TypeScript SDK clients.
+- **2026-11-21 — `uv sync` without `--all-packages` prunes the other workspace members.** After a dependency change, plain `uv sync` removed psycopg and the `pg_container` plugin failed to load. Always `uv sync --all-packages` (as CI does).
+- **2026-11-21 — Fakes should answer with the producer's own models.** The gateway's `FakeCoreApi` serialises core-api's response schemas and verifies each request's HMAC, so canned payloads cannot drift from the contract and every tool test also proves signing.
+- **2026-11-21 — Property-test idempotence of masks.** Hypothesis found that a one-character VPA handle re-masked differently (`0@0` -> `0***@0` -> `0****@0`). Masking a masked value must change nothing; trailing mask characters are now ignored.
+- **2026-11-21 — pyright strict and common idioms.** `isinstance(x, list)` on `Any` narrows to `list[Unknown]`: `cast("list[object]", x)` before filtering. `@asynccontextmanager` on a function annotated `AsyncIterator` is reported deprecated: annotate `AsyncGenerator`. Comparisons with `httpx.codes` members confuse it: use `http.HTTPStatus`.
 - **2026-11-18 — Parse diagrams with the major version the site renders.** `poe docs-check` and the CI Docs build run `@mermaid-js/mermaid-cli@11.17.1` over every Markdown file with a diagram; the 12.x CLI bundles Mermaid 12, but MkDocs Material renders Mermaid 11, and a validator newer than the renderer can pass diagrams the site then breaks on.
 - **2026-11-17 — Unit-only coverage drifts down as database code grows.** Repositories and routes are exercised by the integration suite, which the gate did not count, so coverage fell to 89.5% with the tests still thorough. CI now combines unit and integration coverage data (`COVERAGE_FILE` per job, `coverage combine`) before the 90% gate; combined it is 99%.
 - **2026-11-17 — Cases that commit to a shared database must not share data.** Three parametrised ceiling cases each committed four documents with the same search word to the session's scratch database, so later cases counted earlier rows. Give each case its own data (a word, an ID), and make default test identifiers wide enough not to collide (`doc_code` had 3 random digits).
@@ -51,6 +57,7 @@
 
 ## Deferred
 
+- **Hide tools a caller cannot use** (`on_list_tools` filtered by `TOOL_SCOPES`): agents would not plan with tools that will be refused. Today every tool is listed and refused at call time.
 - **Find a Transaction by ID without probing every partition.** `GET /v1/transactions/{id}` checks each monthly partition's primary-key index. If the generator and the write path guarantee that a `txn_` ULID's timestamp equals `initiated_at`, the month can be derived from the ID and the lookup pruned to one partition.
 - **Distroless runtime image** — removes apt/perl/shell CVE classes and shrinks the image; costs a rework of how the venv is copied and shell-less debugging. Candidate ADR.
 - **Image signing and SBOM attestation** (cosign / GitHub attestations) once images are pushed to ECR in P6.

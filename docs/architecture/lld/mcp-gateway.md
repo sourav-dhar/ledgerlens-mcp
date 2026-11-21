@@ -6,19 +6,23 @@ The gateway is the only component MCP clients talk to. It owns the protocol, ide
 
 ```
 services/mcp-gateway/src/mcp_gateway/
-├── app.py               # build_app(settings) -> ASGI app; FastMCP server + /healthz + RFC 9728 route
+├── app.py               # create_app(settings) -> ASGI app; FastMCP server + /healthz + RFC 9728 route
+├── server.py            # create_server(settings): pipeline order, tool registration, probes
+├── runtime.py           # lifespan: one core-api client per instance; typed accessors for tools
 ├── settings.py          # pydantic-settings; every timeout and limit is explicit
 ├── auth/
 │   ├── provider.py      # FastMCP Cognito / OAuth-proxy provider wiring
-│   ├── principal.py     # Principal(sub, client_id, roles, scopes, kb_ceiling)
-│   └── scopes.py        # Scope enum, ROLE_SCOPES, require(scope) helper
+│   ├── principal.py     # Principal(sub, client_id, role, scopes); one Role, scopes capped by it (ADR 0016)
+│   └── scopes.py        # Scope, Role, ROLE_SCOPES, ROLE_KB_CEILING, TOOL_SCOPES (plan §4, §6 below)
 ├── middleware/
+│   ├── authorize.py     # stage 4: principal from the token, scope from TOOL_SCOPES (fail closed)
 │   ├── rate_limit.py    # DynamoDB token bucket -> 429 + Retry-After
 │   ├── deadline.py      # request budget, X-Request-Deadline propagation
 │   ├── load_shed.py     # in-flight limit, minimum remaining budget
 │   ├── chaos.py         # HMAC-verified fault injection (non-prod + operator scope)
 │   └── audit.py         # one audit record per tool call, success or failure
 ├── tools/
+│   ├── common.py        # READ_ONLY annotations, ID types, View base (ignores fields it does not declare)
 │   ├── customers.py     # search_customers, get_customer_profile
 │   ├── kyc.py           # get_kyc_status, list_kyc_documents
 │   ├── payments.py      # get_account_summary, search_transactions, get_transaction, get_spending_insights
@@ -30,7 +34,7 @@ services/mcp-gateway/src/mcp_gateway/
 ├── prompts.py           # investigate_suspicious_activity, kyc_periodic_review, dispute_triage
 ├── masking.py           # role-aware field masking (pure functions)
 ├── cursors.py           # HMAC-signed opaque pagination cursors
-├── errors.py            # error taxonomy -> MCP tool errors
+├── errors.py            # error taxonomy; ErrorResults middleware -> isError results with a structured body
 └── clients/
     ├── core_api.py      # typed httpx client wrapped in kosha_resilience policies
     └── screening.py     # typed httpx client for screening-sim, behind its own breaker
@@ -73,47 +77,44 @@ flowchart LR
 Every tool follows the same shape so it can be tested the same way.
 
 ```python
-class SearchTransactionsInput(BaseModel):
-    model_config = ConfigDict(extra="forbid", frozen=True)
-
-    account_id: AccountId
-    from_date: date | None = None
-    to_date: date | None = None
-    min_amount_paise: PositivePaise | None = None
-    max_amount_paise: PositivePaise | None = None
-    rails: frozenset[Rail] = frozenset()
-    statuses: frozenset[TransactionStatus] = frozenset()
-    text: Annotated[str, StringConstraints(max_length=100)] | None = None
-    limit: Annotated[int, Field(ge=1, le=100)] = 25
-    cursor: SignedCursor | None = None
-
-    @model_validator(mode="after")
-    def _ranges(self) -> Self: ...  # from_date <= to_date, min <= max, window <= 366 days
-
-
-class SearchTransactionsOutput(BaseModel):
+class TransactionSearch(View):  # View: frozen, ignores fields it does not declare
     items: list[TransactionView]
-    next_cursor: SignedCursor | None
+    next_cursor: str | None
     truncated: bool
     as_of: datetime
 
 
-@mcp.tool(annotations={"readOnlyHint": True, "openWorldHint": False})
 async def search_transactions(
-    params: SearchTransactionsInput, ctx: Context
-) -> SearchTransactionsOutput:
-    principal = require(ctx, Scope.TRANSACTIONS_READ)
-    page = await core_api(ctx).search_transactions(params)
-    return mask(page, principal)
+    ctx: Context,
+    account_id: AccountId,  # Annotated[str, Field(pattern=...)]: checked before any call
+    from_date: date | None = None,
+    to_date: date | None = None,
+    min_amount_paise: PositivePaise | None = None,
+    statuses: frozenset[TransactionStatus] = frozenset(),
+    limit: Annotated[int, Field(ge=1, le=100)] = 25,
+    cursor: str | None = None,
+) -> TransactionSearch:
+    """Transactions on one Account, newest first (the docstring is the tool description)."""
+    caller = await principal(ctx)  # resolved and scope-checked by Authorize (stage 4)
+    page = await core_api(ctx).get(
+        caller.signed_as(), f"/v1/accounts/{account_id}/transactions", TransactionSearch, params=...
+    )
+    return mask(page, caller.scopes)
+
+
+def register(mcp: FastMCP) -> None:
+    mcp.tool(search_transactions, title="Search transactions", annotations=READ_ONLY)
 ```
 
 | Rule | Reason |
 |---|---|
-| `extra="forbid"` on inputs | Unknown arguments are rejected, not ignored |
+| Flat, annotated arguments | The input schema an agent sees is the argument list itself; cross-field rules (a range, "at least one criterion") are checked in the tool and raise `invalid_argument` |
+| Strict input validation | FastMCP's `strict_input_validation`: unknown or mistyped arguments are rejected, not ignored or coerced |
+| The scope lives in `TOOL_SCOPES`, not in the tool | `Authorize` checks it before the tool runs; a tool missing from the table cannot be called, and a guard test requires every registered tool to be listed |
 | Money in paise (`int`) with a display string alongside | No floats anywhere on the wire |
 | Output models are explicit | FastMCP publishes them as `outputSchema`; contract tests snapshot them |
 | Write tools take `idempotency_key: UUID` | Required, not optional; one key per intended write, reused on every retry of it |
-| A write is retried by the gateway only with its original key (2 attempts, on connect errors, `503`, `504`) | A response lost after `core-api` committed comes back as the stored replay, not a second dispute ([System design §8](../system-design.md#8-idempotency-end-to-end)) |
+| A write is retried by the gateway only with its original key (2 attempts, on connect errors, timeouts, `503`, `504`) | A response lost after `core-api` committed comes back as the stored replay, not a second dispute ([System design §8](../system-design.md#8-idempotency-end-to-end)) |
 | The audit middleware mints `audit_id` once per tool call | `POST /v1/audit` inserts with `ON CONFLICT DO NOTHING`, so a retried audit write records the call once |
 | Write tools carry `destructiveHint: False, idempotentHint: True` | Accurate hints help clients decide when to confirm |
 | Write tools request confirmation via MCP elicitation when the client supports it | Falls back to an explicit `confirm: true` argument |

@@ -185,11 +185,15 @@ jobs:
           echo
           test "${status}" = "${expected}"
           if [ "${SERVICE}" = "mcp-gateway" ]; then
-            curl --fail --silent --show-error http://127.0.0.1:8080/mcp \
-              -H 'Content-Type: application/json' \
-              -H 'Accept: application/json, text/event-stream' \
-              -d '{"jsonrpc":"2.0","id":1,"method":"tools/call","params":{"name":"get_service_health","arguments":{}}}' \
-              | tee /dev/stderr | grep -q '"isError":false'
+            mcp() {
+              curl --fail --silent --show-error http://127.0.0.1:8080/mcp \
+                -H 'Content-Type: application/json' \
+                -H 'Accept: application/json, text/event-stream' -d "$1" | tee /dev/stderr
+            }
+            # MCP is served, and a tool call without a verified identity fails closed.
+            mcp '{"jsonrpc":"2.0","id":1,"method":"tools/list"}' | grep -q '"get_service_health"'
+            mcp '{"jsonrpc":"2.0","id":2,"method":"tools/call","params":{"name":"get_service_health","arguments":{}}}' \
+              | grep -q '"code":"unauthenticated"'
           fi
           test "$(docker inspect --format '{{.Config.User}}' "ledgerlens/${SERVICE}:ci")" = "10001:10001"
       - name: Smoke test logs
