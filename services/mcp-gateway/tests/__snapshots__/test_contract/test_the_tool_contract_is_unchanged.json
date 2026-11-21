@@ -1,0 +1,500 @@
+{
+  "get_customer_profile": {
+    "annotations": {
+      "destructiveHint": false,
+      "idempotentHint": true,
+      "openWorldHint": false,
+      "readOnlyHint": true
+    },
+    "description": "A Customer's profile with the Addresses in force today.\n\nMobile, email and date of birth (year only) are masked unless you hold kyc:pii.",
+    "inputSchema": {
+      "additionalProperties": false,
+      "properties": {
+        "customer_id": {
+          "description": "A Customer ID: `cus_` followed by a ULID.",
+          "pattern": "^cus_[0-7][0-9A-HJKMNP-TV-Z]{25}$",
+          "type": "string"
+        }
+      },
+      "required": [
+        "customer_id"
+      ],
+      "type": "object"
+    },
+    "name": "get_customer_profile",
+    "outputSchema": {
+      "properties": {
+        "addresses": {
+          "items": {
+            "properties": {
+              "address_id": {
+                "type": "string"
+              },
+              "address_type": {
+                "enum": [
+                  "permanent",
+                  "correspondence"
+                ],
+                "type": "string"
+              },
+              "city": {
+                "type": "string"
+              },
+              "country": {
+                "type": "string"
+              },
+              "district": {
+                "anyOf": [
+                  {
+                    "type": "string"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ]
+              },
+              "is_verified": {
+                "type": "boolean"
+              },
+              "line1": {
+                "type": "string"
+              },
+              "line2": {
+                "anyOf": [
+                  {
+                    "type": "string"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ]
+              },
+              "pincode": {
+                "type": "string"
+              },
+              "state": {
+                "type": "string"
+              },
+              "state_code": {
+                "type": "string"
+              },
+              "valid_from": {
+                "format": "date",
+                "type": "string"
+              },
+              "valid_to": {
+                "anyOf": [
+                  {
+                    "format": "date",
+                    "type": "string"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ]
+              }
+            },
+            "required": [
+              "address_id",
+              "address_type",
+              "line1",
+              "line2",
+              "city",
+              "district",
+              "state",
+              "state_code",
+              "pincode",
+              "country",
+              "is_verified",
+              "valid_from",
+              "valid_to"
+            ],
+            "type": "object"
+          },
+          "type": "array"
+        },
+        "annual_income_band": {
+          "anyOf": [
+            {
+              "description": "Declared annual income, in the lakh bands Indian onboarding forms use.",
+              "enum": [
+                "up_to_3_lakh",
+                "3_to_6_lakh",
+                "6_to_12_lakh",
+                "12_to_25_lakh",
+                "25_to_50_lakh",
+                "above_50_lakh"
+              ],
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "cif_number": {
+          "type": "string"
+        },
+        "created_at": {
+          "format": "date-time",
+          "type": "string"
+        },
+        "customer_id": {
+          "type": "string"
+        },
+        "date_of_birth": {
+          "type": "string"
+        },
+        "email": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "employer_name": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "first_name": {
+          "type": "string"
+        },
+        "gender": {
+          "description": "Gender as recorded on Indian KYC documents.",
+          "enum": [
+            "female",
+            "male",
+            "transgender"
+          ],
+          "type": "string"
+        },
+        "last_name": {
+          "type": "string"
+        },
+        "middle_name": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "mobile": {
+          "type": "string"
+        },
+        "mobile_verified": {
+          "type": "boolean"
+        },
+        "occupation": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "onboarding_channel": {
+          "description": "Where a Customer's relationship began.",
+          "enum": [
+            "app",
+            "web",
+            "assisted",
+            "partner"
+          ],
+          "type": "string"
+        },
+        "persona": {
+          "description": "The behavioural archetype a Customer belongs to (see GLOSSARY: Persona).",
+          "enum": [
+            "salaried",
+            "student",
+            "gig_worker",
+            "sme_owner",
+            "nri",
+            "senior_citizen"
+          ],
+          "type": "string"
+        },
+        "preferred_language": {
+          "type": "string"
+        },
+        "relationship_start_date": {
+          "format": "date",
+          "type": "string"
+        },
+        "residential_status": {
+          "enum": [
+            "resident",
+            "nri"
+          ],
+          "type": "string"
+        },
+        "risk_category": {
+          "description": "KYC risk category; it sets the Re-KYC interval (see GLOSSARY: Risk category).",
+          "enum": [
+            "low",
+            "medium",
+            "high"
+          ],
+          "type": "string"
+        },
+        "segment": {
+          "description": "The commercial tier a Customer is served in (see GLOSSARY: Segment).",
+          "enum": [
+            "mass",
+            "affluent",
+            "premium"
+          ],
+          "type": "string"
+        },
+        "status": {
+          "description": "A Customer's standing with the bank; Account and KYC statuses are separate lifecycles.",
+          "enum": [
+            "prospect",
+            "active",
+            "on_hold",
+            "dormant",
+            "frozen",
+            "under_investigation",
+            "deceased_claim_pending",
+            "closed"
+          ],
+          "type": "string"
+        },
+        "updated_at": {
+          "format": "date-time",
+          "type": "string"
+        }
+      },
+      "required": [
+        "customer_id",
+        "cif_number",
+        "first_name",
+        "middle_name",
+        "last_name",
+        "date_of_birth",
+        "gender",
+        "email",
+        "mobile",
+        "mobile_verified",
+        "persona",
+        "occupation",
+        "employer_name",
+        "annual_income_band",
+        "segment",
+        "residential_status",
+        "preferred_language",
+        "onboarding_channel",
+        "relationship_start_date",
+        "status",
+        "risk_category",
+        "created_at",
+        "updated_at",
+        "addresses"
+      ],
+      "type": "object"
+    },
+    "title": "Customer profile"
+  },
+  "get_service_health": {
+    "annotations": {
+      "destructiveHint": false,
+      "idempotentHint": true,
+      "openWorldHint": false,
+      "readOnlyHint": true
+    },
+    "description": "Report gateway status and the circuit-breaker state of each downstream dependency.",
+    "inputSchema": {
+      "additionalProperties": false,
+      "properties": {},
+      "type": "object"
+    },
+    "name": "get_service_health",
+    "outputSchema": {
+      "description": "Gateway self-report returned by `get_service_health`.",
+      "properties": {
+        "dependencies": {
+          "items": {
+            "description": "State of one downstream dependency as seen by this gateway instance.",
+            "properties": {
+              "breaker_state": {
+                "enum": [
+                  "closed",
+                  "open",
+                  "half_open"
+                ],
+                "type": "string"
+              },
+              "name": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "name",
+              "breaker_state"
+            ],
+            "type": "object"
+          },
+          "type": "array"
+        },
+        "service": {
+          "type": "string"
+        },
+        "status": {
+          "enum": [
+            "ok",
+            "degraded"
+          ],
+          "type": "string"
+        },
+        "version": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "status",
+        "service",
+        "version",
+        "dependencies"
+      ],
+      "type": "object"
+    },
+    "title": "Service health"
+  },
+  "search_customers": {
+    "annotations": {
+      "destructiveHint": false,
+      "idempotentHint": true,
+      "openWorldHint": false,
+      "readOnlyHint": true
+    },
+    "description": "Find Customers matching every criterion given: name, CIF number, mobile's last four.\n\nMobile numbers are masked unless you hold kyc:pii.",
+    "inputSchema": {
+      "additionalProperties": false,
+      "properties": {
+        "cif_number": {
+          "anyOf": [
+            {
+              "pattern": "^\\d{10}$",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "The 10-digit CIF number."
+        },
+        "limit": {
+          "default": 20,
+          "maximum": 100,
+          "minimum": 1,
+          "type": "integer"
+        },
+        "mobile_last4": {
+          "anyOf": [
+            {
+              "pattern": "^\\d{4}$",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Last four digits of the mobile."
+        },
+        "name": {
+          "anyOf": [
+            {
+              "maxLength": 64,
+              "minLength": 2,
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Part of the first and last name."
+        }
+      },
+      "type": "object"
+    },
+    "name": "search_customers",
+    "outputSchema": {
+      "properties": {
+        "customers": {
+          "items": {
+            "description": "One search hit: enough to tell Customers apart and pick one.",
+            "properties": {
+              "cif_number": {
+                "type": "string"
+              },
+              "customer_id": {
+                "type": "string"
+              },
+              "full_name": {
+                "type": "string"
+              },
+              "mobile": {
+                "type": "string"
+              },
+              "segment": {
+                "description": "The commercial tier a Customer is served in (see GLOSSARY: Segment).",
+                "enum": [
+                  "mass",
+                  "affluent",
+                  "premium"
+                ],
+                "type": "string"
+              },
+              "status": {
+                "description": "A Customer's standing with the bank; Account and KYC statuses are separate lifecycles.",
+                "enum": [
+                  "prospect",
+                  "active",
+                  "on_hold",
+                  "dormant",
+                  "frozen",
+                  "under_investigation",
+                  "deceased_claim_pending",
+                  "closed"
+                ],
+                "type": "string"
+              }
+            },
+            "required": [
+              "customer_id",
+              "cif_number",
+              "full_name",
+              "mobile",
+              "segment",
+              "status"
+            ],
+            "type": "object"
+          },
+          "type": "array"
+        }
+      },
+      "required": [
+        "customers"
+      ],
+      "type": "object"
+    },
+    "title": "Search customers"
+  }
+}
