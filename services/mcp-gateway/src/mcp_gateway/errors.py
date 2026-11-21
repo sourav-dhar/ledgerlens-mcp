@@ -69,6 +69,16 @@ class GatewayError(ToolError):
         self.dependency = dependency
 
 
+class UnauthenticatedError(GatewayError):
+    """No verified identity came with the call.
+
+    Over HTTP the authentication layer answers `401` before any tool runs; this is the
+    fail-closed answer for any path that reaches a tool without one.
+    """
+
+    code = ErrorCode.UNAUTHENTICATED
+
+
 class ForbiddenError(GatewayError):
     """A scope is missing, or a document is above the caller's ceiling."""
 

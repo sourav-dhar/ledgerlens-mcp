@@ -5,9 +5,9 @@ from collections.abc import AsyncIterator
 import pytest
 from fastmcp import Client
 from fastmcp.client.transports import FastMCPTransport
+from gateway_harness import FakeCoreApi, access_token, gateway
 
 from mcp_gateway import __version__
-from mcp_gateway.server import create_server
 
 pytestmark = pytest.mark.anyio
 
@@ -16,7 +16,7 @@ type McpClient = Client[FastMCPTransport]
 
 @pytest.fixture
 async def client() -> AsyncIterator[McpClient]:
-    async with Client(create_server()) as c:
+    async with Client(gateway(FakeCoreApi(), access_token())) as c:
         yield c
 
 
