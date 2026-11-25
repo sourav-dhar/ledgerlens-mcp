@@ -309,6 +309,357 @@
     },
     "title": "Customer profile"
   },
+  "get_kyc_status": {
+    "annotations": {
+      "destructiveHint": false,
+      "idempotentHint": true,
+      "openWorldHint": false,
+      "readOnlyHint": true
+    },
+    "description": "A Customer's KYC profile in force, with its status history.\n\nPAN and Aadhaar are masked to their last four. Holders of kyc:pii may pass\nreveal_pan to see the full PAN; each reveal is recorded in the audit log.",
+    "inputSchema": {
+      "additionalProperties": false,
+      "properties": {
+        "customer_id": {
+          "description": "A Customer ID: `cus_` followed by a ULID.",
+          "pattern": "^cus_[0-7][0-9A-HJKMNP-TV-Z]{25}$",
+          "type": "string"
+        },
+        "reveal_pan": {
+          "default": false,
+          "description": "Return the full PAN. Needs kyc:pii; every reveal is audited.",
+          "type": "boolean"
+        }
+      },
+      "required": [
+        "customer_id"
+      ],
+      "type": "object"
+    },
+    "name": "get_kyc_status",
+    "outputSchema": {
+      "description": "The KYC profile in force, with its status history.",
+      "properties": {
+        "aadhaar": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Always masked: only the last four digits are stored."
+        },
+        "ckyc_number": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "created_at": {
+          "format": "date-time",
+          "type": "string"
+        },
+        "customer_id": {
+          "type": "string"
+        },
+        "events": {
+          "items": {
+            "properties": {
+              "actor": {
+                "description": "Who or what caused a status change recorded in history.",
+                "enum": [
+                  "system",
+                  "customer",
+                  "staff",
+                  "npci",
+                  "risk_engine"
+                ],
+                "type": "string"
+              },
+              "from_status": {
+                "anyOf": [
+                  {
+                    "enum": [
+                      "not_started",
+                      "pending_documents",
+                      "pending_vcip",
+                      "in_review",
+                      "on_hold",
+                      "escalated",
+                      "verified",
+                      "rejected",
+                      "re_kyc_due",
+                      "re_kyc_overdue",
+                      "expired"
+                    ],
+                    "type": "string"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ]
+              },
+              "occurred_at": {
+                "format": "date-time",
+                "type": "string"
+              },
+              "reason": {
+                "anyOf": [
+                  {
+                    "type": "string"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ]
+              },
+              "to_status": {
+                "enum": [
+                  "not_started",
+                  "pending_documents",
+                  "pending_vcip",
+                  "in_review",
+                  "on_hold",
+                  "escalated",
+                  "verified",
+                  "rejected",
+                  "re_kyc_due",
+                  "re_kyc_overdue",
+                  "expired"
+                ],
+                "type": "string"
+              }
+            },
+            "required": [
+              "from_status",
+              "to_status",
+              "actor",
+              "reason",
+              "occurred_at"
+            ],
+            "type": "object"
+          },
+          "type": "array"
+        },
+        "face_match_score": {
+          "anyOf": [
+            {
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "fatca_crs_declared": {
+          "type": "boolean"
+        },
+        "kyc_id": {
+          "type": "string"
+        },
+        "kyc_status": {
+          "enum": [
+            "not_started",
+            "pending_documents",
+            "pending_vcip",
+            "in_review",
+            "on_hold",
+            "escalated",
+            "verified",
+            "rejected",
+            "re_kyc_due",
+            "re_kyc_overdue",
+            "expired"
+          ],
+          "type": "string"
+        },
+        "kyc_type": {
+          "description": "How a KYC profile was verified (see GLOSSARY: Min-KYC, Full KYC, V-CIP).",
+          "enum": [
+            "min_kyc",
+            "full_kyc",
+            "v_cip",
+            "ckyc_download"
+          ],
+          "type": "string"
+        },
+        "liveness_score": {
+          "anyOf": [
+            {
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "next_review_due": {
+          "anyOf": [
+            {
+              "format": "date",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "ovd_type": {
+          "anyOf": [
+            {
+              "description": "Officially Valid Documents accepted as proof of address (see GLOSSARY: OVD).",
+              "enum": [
+                "passport",
+                "voter_id",
+                "driving_licence",
+                "aadhaar"
+              ],
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "pan": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Masked to its last four; in full only when revealed with kyc:pii."
+        },
+        "pan_name_match_score": {
+          "anyOf": [
+            {
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "pan_status": {
+          "anyOf": [
+            {
+              "enum": [
+                "valid",
+                "invalid",
+                "not_aadhaar_linked"
+              ],
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "pep_flag": {
+          "type": "boolean"
+        },
+        "risk_category": {
+          "description": "KYC risk category; it sets the Re-KYC interval (see GLOSSARY: Risk category).",
+          "enum": [
+            "low",
+            "medium",
+            "high"
+          ],
+          "type": "string"
+        },
+        "risk_rationale": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "sanctions_flag": {
+          "type": "boolean"
+        },
+        "vcip_agent_id": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "vcip_session_id": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "verified_at": {
+          "anyOf": [
+            {
+              "format": "date-time",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "verified_by": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        }
+      },
+      "required": [
+        "kyc_id",
+        "customer_id",
+        "kyc_type",
+        "kyc_status",
+        "ckyc_number",
+        "pan_status",
+        "pan_name_match_score",
+        "ovd_type",
+        "vcip_session_id",
+        "vcip_agent_id",
+        "liveness_score",
+        "face_match_score",
+        "pep_flag",
+        "sanctions_flag",
+        "fatca_crs_declared",
+        "risk_category",
+        "risk_rationale",
+        "verified_at",
+        "verified_by",
+        "next_review_due",
+        "created_at",
+        "events"
+      ],
+      "type": "object"
+    },
+    "title": "KYC status"
+  },
   "get_service_health": {
     "annotations": {
       "destructiveHint": false,
@@ -373,6 +724,111 @@
       "type": "object"
     },
     "title": "Service health"
+  },
+  "list_kyc_documents": {
+    "annotations": {
+      "destructiveHint": false,
+      "idempotentHint": true,
+      "openWorldHint": false,
+      "readOnlyHint": true
+    },
+    "description": "Metadata of a Customer's KYC documents, newest first; never the documents.",
+    "inputSchema": {
+      "additionalProperties": false,
+      "properties": {
+        "customer_id": {
+          "description": "A Customer ID: `cus_` followed by a ULID.",
+          "pattern": "^cus_[0-7][0-9A-HJKMNP-TV-Z]{25}$",
+          "type": "string"
+        }
+      },
+      "required": [
+        "customer_id"
+      ],
+      "type": "object"
+    },
+    "name": "list_kyc_documents",
+    "outputSchema": {
+      "properties": {
+        "documents": {
+          "items": {
+            "description": "Metadata only: the document itself is never returned.",
+            "properties": {
+              "doc_type": {
+                "enum": [
+                  "pan_card",
+                  "aadhaar_masked",
+                  "passport",
+                  "selfie",
+                  "address_proof",
+                  "signature"
+                ],
+                "type": "string"
+              },
+              "document_id": {
+                "type": "string"
+              },
+              "expires_on": {
+                "anyOf": [
+                  {
+                    "format": "date",
+                    "type": "string"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ]
+              },
+              "kyc_id": {
+                "type": "string"
+              },
+              "rejection_reason": {
+                "anyOf": [
+                  {
+                    "type": "string"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ]
+              },
+              "sha256": {
+                "type": "string"
+              },
+              "status": {
+                "enum": [
+                  "accepted",
+                  "rejected",
+                  "expired"
+                ],
+                "type": "string"
+              },
+              "uploaded_at": {
+                "format": "date-time",
+                "type": "string"
+              }
+            },
+            "required": [
+              "document_id",
+              "kyc_id",
+              "doc_type",
+              "status",
+              "rejection_reason",
+              "sha256",
+              "uploaded_at",
+              "expires_on"
+            ],
+            "type": "object"
+          },
+          "type": "array"
+        }
+      },
+      "required": [
+        "documents"
+      ],
+      "type": "object"
+    },
+    "title": "KYC documents"
   },
   "search_customers": {
     "annotations": {
