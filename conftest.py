@@ -11,8 +11,9 @@ from typing import Any
 
 import pytest
 
-# Shared fixtures (tests/support is on pytest's pythonpath): one Postgres container per session.
-pytest_plugins = ["pg_container"]
+# Shared fixtures (tests/support is on pytest's pythonpath): one Postgres container per
+# session, and one scratch database that API tests commit to.
+pytest_plugins = ["pg_container", "api_database"]
 
 
 @pytest.fixture(scope="session")
