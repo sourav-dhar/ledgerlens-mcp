@@ -160,7 +160,7 @@ Encoding: `base64url(json(payload)) + "." + base64url(sig)`. Verification failur
 |---|---|---|---|
 | `search_customers` | `customers:read` | masked | Name / CIF / mobile-last-4 search |
 | `get_customer_profile` | `customers:read` | masked unless `kyc:pii` | |
-| `get_kyc_status` | `kyc:read` | masked unless `kyc:pii` | PAN last 4 always; full PAN only with `kyc:pii` |
+| `get_kyc_status` | `kyc:read` | masked | PAN and Aadhaar masked to the last 4; the full PAN only when a `kyc:pii` holder passes `reveal_pan: true`, which calls core-api's audited `/kyc/pan` |
 | `list_kyc_documents` | `kyc:read` | no | Metadata only, never document bytes |
 | `get_account_summary` | `transactions:read` | no | |
 | `search_transactions` | `transactions:read` | counterparty masked | Signed cursor |
@@ -179,7 +179,7 @@ Encoding: `base64url(json(payload)) + "." + base64url(sig)`. Verification failur
 
 | Field | Masked form | Unmasked with |
 |---|---|---|
-| PAN | `******234X` (last 4 kept) | `kyc:pii` |
+| PAN | `******234X` (last 4 kept) | `kyc:pii` **and** an explicit `reveal_pan` (each reveal is audited) |
 | Aadhaar | always `XXXX XXXX 1234` | never (only last 4 is stored) |
 | Mobile | `******7890` | `kyc:pii` |
 | Email | `r****@example.com` | `kyc:pii` |
