@@ -23,6 +23,8 @@ def _id(prefix: IdPrefix, entity: str) -> Any:
 
 
 CustomerId = Annotated[str, _id(IdPrefix.CUSTOMER, "Customer")]
+AccountId = Annotated[str, _id(IdPrefix.ACCOUNT, "Account")]
+TransactionId = Annotated[str, _id(IdPrefix.TRANSACTION, "Transaction")]
 
 
 class View(BaseModel):

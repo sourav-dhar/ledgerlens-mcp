@@ -66,6 +66,7 @@ services:
       CORE_API_URL: http://core-api:8080
       # Must equal core-api's current INTERNAL_SIGNING_KEYS entry (ADR 0013).
       INTERNAL_SIGNING_KEY: kosha-local-only-signing-key-not-secret
+      CURSOR_KEYS: kosha-local-only-cursor-key-not-secret
     depends_on:
       core-api: { condition: service_healthy }
       screening-sim: { condition: service_healthy }

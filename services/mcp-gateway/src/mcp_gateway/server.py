@@ -11,7 +11,7 @@ from mcp_gateway.errors import ErrorResults
 from mcp_gateway.middleware.authorize import Authorize, TokenSource
 from mcp_gateway.runtime import lifespan
 from mcp_gateway.settings import Settings
-from mcp_gateway.tools import customers, kyc, ops
+from mcp_gateway.tools import customers, kyc, ops, payments
 
 INSTRUCTIONS = """\
 LedgerLens gives Kosha Financial staff read access to customers, accounts,
@@ -63,6 +63,7 @@ def create_server(
     ops.register(mcp)
     customers.register(mcp)
     kyc.register(mcp)
+    payments.register(mcp)
     mcp.custom_route("/healthz", methods=["GET"], include_in_schema=False)(_healthz)
     mcp.custom_route("/readyz", methods=["GET"], include_in_schema=False)(_readyz)
     return mcp

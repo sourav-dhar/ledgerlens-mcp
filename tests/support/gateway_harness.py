@@ -23,7 +23,12 @@ from mcp_gateway.auth.scopes import ROLE_SCOPES, Role, Scope
 from mcp_gateway.server import create_server
 from mcp_gateway.settings import Settings
 
-SETTINGS = Settings(internal_signing_key=SecretStr(TEST_KEY), core_api_backoff_s=0)
+CURSOR_KEY = "cursor-key-for-gateway-tests-" + "c" * 8
+SETTINGS = Settings(
+    internal_signing_key=SecretStr(TEST_KEY),
+    cursor_keys=SecretStr(CURSOR_KEY),
+    core_api_backoff_s=0,
+)
 
 
 def access_token(

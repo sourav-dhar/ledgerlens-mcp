@@ -16,8 +16,9 @@ from fastmcp.server.context import Context
 
 from mcp_gateway.auth.principal import Principal
 from mcp_gateway.clients.core_api import CORE_API, CoreApi
+from mcp_gateway.cursors import Cursors
 from mcp_gateway.errors import DependencyUnavailableError, InternalError
-from mcp_gateway.settings import Settings
+from mcp_gateway.settings import Settings, split_keys
 
 RUNTIME = "runtime"
 PRINCIPAL = "principal"
@@ -27,19 +28,24 @@ PRINCIPAL = "principal"
 class Runtime:
     core_api: CoreApi | None
     """``None`` until an internal signing key is configured."""
+    cursors: Cursors | None = None
+    """``None`` until cursor keys are configured."""
 
 
 def _runtime(settings: Settings, http: httpx.AsyncClient) -> Runtime:
-    key = settings.internal_signing_key
-    if key is None:
-        return Runtime(core_api=None)
+    key, cursor_keys = settings.internal_signing_key, settings.cursor_keys
     return Runtime(
-        core_api=CoreApi(
+        core_api=None
+        if key is None
+        else CoreApi(
             http,
             signing_key=key.get_secret_value().encode(),
             attempts=settings.core_api_attempts,
             backoff_s=settings.core_api_backoff_s,
-        )
+        ),
+        cursors=None
+        if cursor_keys is None
+        else Cursors([k.encode() for k in split_keys(cursor_keys.get_secret_value())]),
     )
 
 
@@ -75,6 +81,14 @@ def core_api(ctx: Context) -> CoreApi:
         msg = "core-api is not configured on this gateway"
         raise DependencyUnavailableError(msg, dependency=CORE_API)
     return client
+
+
+def cursors(ctx: Context) -> Cursors:
+    found = _the_runtime(ctx).cursors
+    if found is None:
+        msg = "pagination is not configured on this gateway"
+        raise InternalError(msg)
+    return found
 
 
 async def principal(ctx: Context) -> Principal:

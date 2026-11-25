@@ -87,11 +87,12 @@ class TransactionSearch(View):  # View: frozen, ignores fields it does not decla
 async def search_transactions(
     ctx: Context,
     account_id: AccountId,  # Annotated[str, Field(pattern=...)]: checked before any call
-    from_date: date | None = None,
-    to_date: date | None = None,
-    min_amount_paise: PositivePaise | None = None,
-    statuses: frozenset[TransactionStatus] = frozenset(),
-    limit: Annotated[int, Field(ge=1, le=100)] = 25,
+    *,
+    initiated_from: AwareDatetime | None = None,  # ISO 8601 with an offset
+    initiated_before: AwareDatetime | None = None,
+    min_amount_paise: Annotated[int | None, Field(gt=0)] = None,
+    statuses: list[TransactionStatus] | None = None,  # sorted before the cursor hashes it
+    limit: Annotated[int, Field(ge=1, le=100)] = 25,  # not part of the cursor's query
     cursor: str | None = None,
 ) -> TransactionSearch:
     """Transactions on one Account, newest first (the docstring is the tool description)."""
@@ -162,9 +163,9 @@ Encoding: `base64url(json(payload)) + "." + base64url(sig)`. Verification failur
 | `get_customer_profile` | `customers:read` | masked unless `kyc:pii` | |
 | `get_kyc_status` | `kyc:read` | masked | PAN and Aadhaar masked to the last 4; the full PAN only when a `kyc:pii` holder passes `reveal_pan: true`, which calls core-api's audited `/kyc/pan` |
 | `list_kyc_documents` | `kyc:read` | no | Metadata only, never document bytes |
-| `get_account_summary` | `transactions:read` | no | |
-| `search_transactions` | `transactions:read` | counterparty masked | Signed cursor |
-| `get_transaction` | `transactions:read` | counterparty masked | Includes status history |
+| `get_account_summary` | `transactions:read` | account number always masked; own VPAs masked | Balances with `*_display` strings |
+| `search_transactions` | `transactions:read` | counterparty masked | Signed cursor bound to the filters and the caller; `amount_display` beside `amount_paise` |
+| `get_transaction` | `transactions:read` | counterparty masked; device and location withheld | Includes status history |
 | `get_spending_insights` | `transactions:read` | no | Aggregates only |
 | `list_aml_alerts` | `aml:read` | masked | |
 | `get_aml_alert` | `aml:read` | masked | Includes triggering transactions |
@@ -185,6 +186,8 @@ Encoding: `base64url(json(payload)) + "." + base64url(sig)`. Verification failur
 | Email | `r****@example.com` | `kyc:pii` |
 | Account number | `XXXXXX4321` | never via MCP |
 | Counterparty VPA | `ra***@okaxis` | `aml:read` |
+| Customer's own VPA | `98***@kosha` (often the mobile number itself) | `kyc:pii` |
+| Device ID, IP address, latitude, longitude of a Transaction | withheld (`null`); the city stays | `aml:read` |
 | Date of birth | year only | `kyc:pii` |
 
-Masking is a pure function tested exhaustively with property tests: for every role and every view model, no field outside the role's allowance survives.
+Masking is a pure function tested exhaustively with property tests: for every role and every view model, no field outside the role's allowance survives. Rules are declared on field types (`Mobile`, `OwnVpa`, `Annotated[str | None, AML_ONLY]`, ...); a `Masked` rule shows a masked form, a `Withheld` rule removes the value.
