@@ -1,4 +1,289 @@
 {
+  "get_account_summary": {
+    "annotations": {
+      "destructiveHint": false,
+      "idempotentHint": true,
+      "openWorldHint": false,
+      "readOnlyHint": true
+    },
+    "description": "An Account's balances, cards and VPAs. The account number is always masked.",
+    "inputSchema": {
+      "additionalProperties": false,
+      "properties": {
+        "account_id": {
+          "description": "A Account ID: `acc_` followed by a ULID.",
+          "pattern": "^acc_[0-7][0-9A-HJKMNP-TV-Z]{25}$",
+          "type": "string"
+        }
+      },
+      "required": [
+        "account_id"
+      ],
+      "type": "object"
+    },
+    "name": "get_account_summary",
+    "outputSchema": {
+      "properties": {
+        "account_id": {
+          "type": "string"
+        },
+        "account_number": {
+          "type": "string"
+        },
+        "available_balance_display": {
+          "readOnly": true,
+          "type": "string"
+        },
+        "available_balance_paise": {
+          "type": "integer"
+        },
+        "cards": {
+          "items": {
+            "properties": {
+              "atm_limit_paise": {
+                "type": "integer"
+              },
+              "card_id": {
+                "type": "string"
+              },
+              "card_type": {
+                "enum": [
+                  "debit",
+                  "credit",
+                  "prepaid"
+                ],
+                "type": "string"
+              },
+              "contactless_enabled": {
+                "type": "boolean"
+              },
+              "ecom_limit_paise": {
+                "type": "integer"
+              },
+              "expiry_month": {
+                "type": "integer"
+              },
+              "expiry_year": {
+                "type": "integer"
+              },
+              "international_enabled": {
+                "type": "boolean"
+              },
+              "issued_at": {
+                "format": "date-time",
+                "type": "string"
+              },
+              "network": {
+                "enum": [
+                  "rupay",
+                  "visa",
+                  "mastercard"
+                ],
+                "type": "string"
+              },
+              "pan_last4": {
+                "type": "string"
+              },
+              "pos_limit_paise": {
+                "type": "integer"
+              },
+              "status": {
+                "enum": [
+                  "inactive",
+                  "active",
+                  "temp_blocked",
+                  "pin_blocked",
+                  "blocked",
+                  "hotlisted",
+                  "expired",
+                  "replaced"
+                ],
+                "type": "string"
+              }
+            },
+            "required": [
+              "card_id",
+              "network",
+              "card_type",
+              "pan_last4",
+              "status",
+              "expiry_month",
+              "expiry_year",
+              "atm_limit_paise",
+              "pos_limit_paise",
+              "ecom_limit_paise",
+              "contactless_enabled",
+              "international_enabled",
+              "issued_at"
+            ],
+            "type": "object"
+          },
+          "type": "array"
+        },
+        "closed_at": {
+          "anyOf": [
+            {
+              "format": "date-time",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "customer_id": {
+          "type": "string"
+        },
+        "hold_amount_paise": {
+          "type": "integer"
+        },
+        "ifsc": {
+          "type": "string"
+        },
+        "interest_rate_bps": {
+          "type": "integer"
+        },
+        "last_txn_at": {
+          "anyOf": [
+            {
+              "format": "date-time",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "ledger_balance_display": {
+          "readOnly": true,
+          "type": "string"
+        },
+        "ledger_balance_paise": {
+          "type": "integer"
+        },
+        "minimum_balance_paise": {
+          "type": "integer"
+        },
+        "mode_of_operation": {
+          "enum": [
+            "single",
+            "joint"
+          ],
+          "type": "string"
+        },
+        "nominee_registered": {
+          "type": "boolean"
+        },
+        "opened_at": {
+          "format": "date-time",
+          "type": "string"
+        },
+        "overdraft_limit_paise": {
+          "type": "integer"
+        },
+        "product_code": {
+          "description": "The deposit product an Account is opened under.",
+          "enum": [
+            "savings_regular",
+            "savings_salary",
+            "current",
+            "fixed_deposit",
+            "recurring_deposit"
+          ],
+          "type": "string"
+        },
+        "status": {
+          "enum": [
+            "pending_activation",
+            "active",
+            "kyc_pending",
+            "dormant",
+            "inoperative",
+            "debit_freeze",
+            "credit_freeze",
+            "total_freeze",
+            "lien_marked",
+            "on_hold",
+            "pending_closure",
+            "closed"
+          ],
+          "type": "string"
+        },
+        "status_reason": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "vpas": {
+          "items": {
+            "properties": {
+              "created_at": {
+                "format": "date-time",
+                "type": "string"
+              },
+              "is_primary": {
+                "type": "boolean"
+              },
+              "status": {
+                "enum": [
+                  "active",
+                  "suspended",
+                  "deregistered"
+                ],
+                "type": "string"
+              },
+              "vpa": {
+                "type": "string"
+              },
+              "vpa_id": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "vpa_id",
+              "vpa",
+              "is_primary",
+              "status",
+              "created_at"
+            ],
+            "type": "object"
+          },
+          "type": "array"
+        }
+      },
+      "required": [
+        "account_id",
+        "customer_id",
+        "account_number",
+        "ifsc",
+        "product_code",
+        "status",
+        "status_reason",
+        "mode_of_operation",
+        "opened_at",
+        "closed_at",
+        "ledger_balance_paise",
+        "hold_amount_paise",
+        "available_balance_paise",
+        "minimum_balance_paise",
+        "interest_rate_bps",
+        "overdraft_limit_paise",
+        "nominee_registered",
+        "last_txn_at",
+        "cards",
+        "vpas",
+        "ledger_balance_display",
+        "available_balance_display"
+      ],
+      "type": "object"
+    },
+    "title": "Account summary"
+  },
   "get_customer_profile": {
     "annotations": {
       "destructiveHint": false,
@@ -725,6 +1010,621 @@
     },
     "title": "Service health"
   },
+  "get_spending_insights": {
+    "annotations": {
+      "destructiveHint": false,
+      "idempotentHint": true,
+      "openWorldHint": false,
+      "readOnlyHint": true
+    },
+    "description": "Credits, debits and debits by category for each month; aggregates only.",
+    "inputSchema": {
+      "additionalProperties": false,
+      "properties": {
+        "account_id": {
+          "description": "A Account ID: `acc_` followed by a ULID.",
+          "pattern": "^acc_[0-7][0-9A-HJKMNP-TV-Z]{25}$",
+          "type": "string"
+        },
+        "months": {
+          "default": 6,
+          "description": "Kolkata months, ending now.",
+          "maximum": 12,
+          "minimum": 1,
+          "type": "integer"
+        }
+      },
+      "required": [
+        "account_id"
+      ],
+      "type": "object"
+    },
+    "name": "get_spending_insights",
+    "outputSchema": {
+      "properties": {
+        "account_id": {
+          "type": "string"
+        },
+        "months": {
+          "items": {
+            "properties": {
+              "categories": {
+                "items": {
+                  "properties": {
+                    "category": {
+                      "type": "string"
+                    },
+                    "debits_display": {
+                      "readOnly": true,
+                      "type": "string"
+                    },
+                    "debits_paise": {
+                      "type": "integer"
+                    },
+                    "transactions": {
+                      "type": "integer"
+                    }
+                  },
+                  "required": [
+                    "category",
+                    "debits_paise",
+                    "transactions",
+                    "debits_display"
+                  ],
+                  "type": "object"
+                },
+                "type": "array"
+              },
+              "credits_display": {
+                "readOnly": true,
+                "type": "string"
+              },
+              "credits_paise": {
+                "type": "integer"
+              },
+              "debits_display": {
+                "readOnly": true,
+                "type": "string"
+              },
+              "debits_paise": {
+                "type": "integer"
+              },
+              "month": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "month",
+              "credits_paise",
+              "debits_paise",
+              "categories",
+              "credits_display",
+              "debits_display"
+            ],
+            "type": "object"
+          },
+          "type": "array"
+        }
+      },
+      "required": [
+        "account_id",
+        "months"
+      ],
+      "type": "object"
+    },
+    "title": "Spending insights"
+  },
+  "get_transaction": {
+    "annotations": {
+      "destructiveHint": false,
+      "idempotentHint": true,
+      "openWorldHint": false,
+      "readOnlyHint": true
+    },
+    "description": "One Transaction with every status it passed through.\n\nDevice and location are withheld, and the counterparty VPA masked, unless you hold\naml:read.",
+    "inputSchema": {
+      "additionalProperties": false,
+      "properties": {
+        "txn_id": {
+          "description": "A Transaction ID: `txn_` followed by a ULID.",
+          "pattern": "^txn_[0-7][0-9A-HJKMNP-TV-Z]{25}$",
+          "type": "string"
+        }
+      },
+      "required": [
+        "txn_id"
+      ],
+      "type": "object"
+    },
+    "name": "get_transaction",
+    "outputSchema": {
+      "properties": {
+        "account_id": {
+          "type": "string"
+        },
+        "amount_display": {
+          "readOnly": true,
+          "type": "string"
+        },
+        "amount_paise": {
+          "type": "integer"
+        },
+        "balance_after_paise": {
+          "anyOf": [
+            {
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "channel": {
+          "description": "The touchpoint where a Transaction was initiated (see GLOSSARY: Channel).",
+          "enum": [
+            "mobile_app",
+            "web",
+            "pos",
+            "atm",
+            "api"
+          ],
+          "type": "string"
+        },
+        "counterparty_account_masked": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "counterparty_ifsc": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "counterparty_name": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "counterparty_vpa": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "currency": {
+          "type": "string"
+        },
+        "customer_id": {
+          "type": "string"
+        },
+        "device_id": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "direction": {
+          "description": "Whether a Transaction takes money out of the Account or brings it in.",
+          "enum": [
+            "debit",
+            "credit"
+          ],
+          "type": "string"
+        },
+        "expected_credit_by": {
+          "anyOf": [
+            {
+              "format": "date-time",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "failure_reason_code": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "geo_city": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "geo_lat": {
+          "anyOf": [
+            {
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "geo_lng": {
+          "anyOf": [
+            {
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "hold_reason": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "initiated_at": {
+          "format": "date-time",
+          "type": "string"
+        },
+        "ip_address": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "is_flagged": {
+          "type": "boolean"
+        },
+        "mcc": {
+          "anyOf": [
+            {
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "merchant_id": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "narration": {
+          "type": "string"
+        },
+        "npci_txn_id": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "posted_at": {
+          "anyOf": [
+            {
+              "format": "date-time",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "rail": {
+          "description": "The payment network a Transaction travels on (see GLOSSARY: Rail).",
+          "enum": [
+            "upi",
+            "imps",
+            "neft",
+            "rtgs",
+            "card_pos",
+            "card_ecom",
+            "atm",
+            "nach",
+            "internal"
+          ],
+          "type": "string"
+        },
+        "remarks": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "risk_score": {
+          "anyOf": [
+            {
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "rrn": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "status": {
+          "enum": [
+            "initiated",
+            "authorised",
+            "processing",
+            "pending",
+            "success",
+            "credit_delayed",
+            "deemed_success",
+            "on_hold",
+            "under_review",
+            "pending_settlement",
+            "settled",
+            "failed",
+            "timed_out",
+            "declined",
+            "cancelled",
+            "expired",
+            "returned",
+            "reversal_initiated",
+            "reversed",
+            "partially_reversed",
+            "refunded",
+            "chargeback_initiated"
+          ],
+          "type": "string"
+        },
+        "status_history": {
+          "items": {
+            "properties": {
+              "actor": {
+                "description": "Who or what caused a status change recorded in history.",
+                "enum": [
+                  "system",
+                  "customer",
+                  "staff",
+                  "npci",
+                  "risk_engine"
+                ],
+                "type": "string"
+              },
+              "from_status": {
+                "anyOf": [
+                  {
+                    "enum": [
+                      "initiated",
+                      "authorised",
+                      "processing",
+                      "pending",
+                      "success",
+                      "credit_delayed",
+                      "deemed_success",
+                      "on_hold",
+                      "under_review",
+                      "pending_settlement",
+                      "settled",
+                      "failed",
+                      "timed_out",
+                      "declined",
+                      "cancelled",
+                      "expired",
+                      "returned",
+                      "reversal_initiated",
+                      "reversed",
+                      "partially_reversed",
+                      "refunded",
+                      "chargeback_initiated"
+                    ],
+                    "type": "string"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ]
+              },
+              "occurred_at": {
+                "format": "date-time",
+                "type": "string"
+              },
+              "reason_code": {
+                "anyOf": [
+                  {
+                    "type": "string"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ]
+              },
+              "to_status": {
+                "enum": [
+                  "initiated",
+                  "authorised",
+                  "processing",
+                  "pending",
+                  "success",
+                  "credit_delayed",
+                  "deemed_success",
+                  "on_hold",
+                  "under_review",
+                  "pending_settlement",
+                  "settled",
+                  "failed",
+                  "timed_out",
+                  "declined",
+                  "cancelled",
+                  "expired",
+                  "returned",
+                  "reversal_initiated",
+                  "reversed",
+                  "partially_reversed",
+                  "refunded",
+                  "chargeback_initiated"
+                ],
+                "type": "string"
+              }
+            },
+            "required": [
+              "from_status",
+              "to_status",
+              "reason_code",
+              "actor",
+              "occurred_at"
+            ],
+            "type": "object"
+          },
+          "type": "array"
+        },
+        "status_reason_code": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "txn_id": {
+          "type": "string"
+        },
+        "txn_type": {
+          "description": "The economic purpose of a Transaction, independent of its Rail.",
+          "enum": [
+            "p2p",
+            "p2m",
+            "salary",
+            "emi",
+            "bill_pay",
+            "refund",
+            "reversal",
+            "cash_withdrawal",
+            "interest_credit",
+            "charges",
+            "fd_booking"
+          ],
+          "type": "string"
+        },
+        "utr": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "value_date": {
+          "anyOf": [
+            {
+              "format": "date",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        }
+      },
+      "required": [
+        "txn_id",
+        "account_id",
+        "customer_id",
+        "direction",
+        "amount_paise",
+        "currency",
+        "rail",
+        "txn_type",
+        "status",
+        "status_reason_code",
+        "failure_reason_code",
+        "hold_reason",
+        "expected_credit_by",
+        "utr",
+        "rrn",
+        "npci_txn_id",
+        "counterparty_name",
+        "counterparty_vpa",
+        "counterparty_account_masked",
+        "counterparty_ifsc",
+        "merchant_id",
+        "mcc",
+        "channel",
+        "geo_city",
+        "narration",
+        "remarks",
+        "initiated_at",
+        "posted_at",
+        "value_date",
+        "balance_after_paise",
+        "risk_score",
+        "is_flagged",
+        "device_id",
+        "ip_address",
+        "geo_lat",
+        "geo_lng",
+        "status_history",
+        "amount_display"
+      ],
+      "type": "object"
+    },
+    "title": "Transaction detail"
+  },
   "list_kyc_documents": {
     "annotations": {
       "destructiveHint": false,
@@ -952,5 +1852,556 @@
       "type": "object"
     },
     "title": "Search customers"
+  },
+  "search_transactions": {
+    "annotations": {
+      "destructiveHint": false,
+      "idempotentHint": true,
+      "openWorldHint": false,
+      "readOnlyHint": true
+    },
+    "description": "An Account's Transactions, newest first, a page at a time.\n\nCounterparty VPAs are masked unless you hold aml:read. To read the next page, call\nagain with the same filters and the previous page's next_cursor.",
+    "inputSchema": {
+      "additionalProperties": false,
+      "properties": {
+        "account_id": {
+          "description": "A Account ID: `acc_` followed by a ULID.",
+          "pattern": "^acc_[0-7][0-9A-HJKMNP-TV-Z]{25}$",
+          "type": "string"
+        },
+        "cursor": {
+          "anyOf": [
+            {
+              "maxLength": 2048,
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "next_cursor from the previous page."
+        },
+        "direction": {
+          "anyOf": [
+            {
+              "description": "Whether a Transaction takes money out of the Account or brings it in.",
+              "enum": [
+                "debit",
+                "credit"
+              ],
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "initiated_before": {
+          "anyOf": [
+            {
+              "format": "date-time",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Exclusive end; defaults to now. A window spans at most 366 days."
+        },
+        "initiated_from": {
+          "anyOf": [
+            {
+              "format": "date-time",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Inclusive start, ISO 8601 with an offset; defaults to 90 days ago."
+        },
+        "limit": {
+          "default": 25,
+          "maximum": 100,
+          "minimum": 1,
+          "type": "integer"
+        },
+        "max_amount_paise": {
+          "anyOf": [
+            {
+              "exclusiveMinimum": 0,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "min_amount_paise": {
+          "anyOf": [
+            {
+              "exclusiveMinimum": 0,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "rails": {
+          "anyOf": [
+            {
+              "items": {
+                "description": "The payment network a Transaction travels on (see GLOSSARY: Rail).",
+                "enum": [
+                  "upi",
+                  "imps",
+                  "neft",
+                  "rtgs",
+                  "card_pos",
+                  "card_ecom",
+                  "atm",
+                  "nach",
+                  "internal"
+                ],
+                "type": "string"
+              },
+              "type": "array"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "statuses": {
+          "anyOf": [
+            {
+              "items": {
+                "enum": [
+                  "initiated",
+                  "authorised",
+                  "processing",
+                  "pending",
+                  "success",
+                  "credit_delayed",
+                  "deemed_success",
+                  "on_hold",
+                  "under_review",
+                  "pending_settlement",
+                  "settled",
+                  "failed",
+                  "timed_out",
+                  "declined",
+                  "cancelled",
+                  "expired",
+                  "returned",
+                  "reversal_initiated",
+                  "reversed",
+                  "partially_reversed",
+                  "refunded",
+                  "chargeback_initiated"
+                ],
+                "type": "string"
+              },
+              "type": "array"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "text": {
+          "anyOf": [
+            {
+              "maxLength": 100,
+              "minLength": 3,
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Part of the narration."
+        }
+      },
+      "required": [
+        "account_id"
+      ],
+      "type": "object"
+    },
+    "name": "search_transactions",
+    "outputSchema": {
+      "properties": {
+        "items": {
+          "items": {
+            "properties": {
+              "account_id": {
+                "type": "string"
+              },
+              "amount_display": {
+                "readOnly": true,
+                "type": "string"
+              },
+              "amount_paise": {
+                "type": "integer"
+              },
+              "balance_after_paise": {
+                "anyOf": [
+                  {
+                    "type": "integer"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ]
+              },
+              "channel": {
+                "description": "The touchpoint where a Transaction was initiated (see GLOSSARY: Channel).",
+                "enum": [
+                  "mobile_app",
+                  "web",
+                  "pos",
+                  "atm",
+                  "api"
+                ],
+                "type": "string"
+              },
+              "counterparty_account_masked": {
+                "anyOf": [
+                  {
+                    "type": "string"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ]
+              },
+              "counterparty_ifsc": {
+                "anyOf": [
+                  {
+                    "type": "string"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ]
+              },
+              "counterparty_name": {
+                "anyOf": [
+                  {
+                    "type": "string"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ]
+              },
+              "counterparty_vpa": {
+                "anyOf": [
+                  {
+                    "type": "string"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ]
+              },
+              "currency": {
+                "type": "string"
+              },
+              "customer_id": {
+                "type": "string"
+              },
+              "direction": {
+                "description": "Whether a Transaction takes money out of the Account or brings it in.",
+                "enum": [
+                  "debit",
+                  "credit"
+                ],
+                "type": "string"
+              },
+              "expected_credit_by": {
+                "anyOf": [
+                  {
+                    "format": "date-time",
+                    "type": "string"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ]
+              },
+              "failure_reason_code": {
+                "anyOf": [
+                  {
+                    "type": "string"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ]
+              },
+              "geo_city": {
+                "anyOf": [
+                  {
+                    "type": "string"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ]
+              },
+              "hold_reason": {
+                "anyOf": [
+                  {
+                    "type": "string"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ]
+              },
+              "initiated_at": {
+                "format": "date-time",
+                "type": "string"
+              },
+              "is_flagged": {
+                "type": "boolean"
+              },
+              "mcc": {
+                "anyOf": [
+                  {
+                    "type": "integer"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ]
+              },
+              "merchant_id": {
+                "anyOf": [
+                  {
+                    "type": "string"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ]
+              },
+              "narration": {
+                "type": "string"
+              },
+              "npci_txn_id": {
+                "anyOf": [
+                  {
+                    "type": "string"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ]
+              },
+              "posted_at": {
+                "anyOf": [
+                  {
+                    "format": "date-time",
+                    "type": "string"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ]
+              },
+              "rail": {
+                "description": "The payment network a Transaction travels on (see GLOSSARY: Rail).",
+                "enum": [
+                  "upi",
+                  "imps",
+                  "neft",
+                  "rtgs",
+                  "card_pos",
+                  "card_ecom",
+                  "atm",
+                  "nach",
+                  "internal"
+                ],
+                "type": "string"
+              },
+              "remarks": {
+                "anyOf": [
+                  {
+                    "type": "string"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ]
+              },
+              "risk_score": {
+                "anyOf": [
+                  {
+                    "type": "integer"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ]
+              },
+              "rrn": {
+                "anyOf": [
+                  {
+                    "type": "string"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ]
+              },
+              "status": {
+                "enum": [
+                  "initiated",
+                  "authorised",
+                  "processing",
+                  "pending",
+                  "success",
+                  "credit_delayed",
+                  "deemed_success",
+                  "on_hold",
+                  "under_review",
+                  "pending_settlement",
+                  "settled",
+                  "failed",
+                  "timed_out",
+                  "declined",
+                  "cancelled",
+                  "expired",
+                  "returned",
+                  "reversal_initiated",
+                  "reversed",
+                  "partially_reversed",
+                  "refunded",
+                  "chargeback_initiated"
+                ],
+                "type": "string"
+              },
+              "status_reason_code": {
+                "anyOf": [
+                  {
+                    "type": "string"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ]
+              },
+              "txn_id": {
+                "type": "string"
+              },
+              "txn_type": {
+                "description": "The economic purpose of a Transaction, independent of its Rail.",
+                "enum": [
+                  "p2p",
+                  "p2m",
+                  "salary",
+                  "emi",
+                  "bill_pay",
+                  "refund",
+                  "reversal",
+                  "cash_withdrawal",
+                  "interest_credit",
+                  "charges",
+                  "fd_booking"
+                ],
+                "type": "string"
+              },
+              "utr": {
+                "anyOf": [
+                  {
+                    "type": "string"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ]
+              },
+              "value_date": {
+                "anyOf": [
+                  {
+                    "format": "date",
+                    "type": "string"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ]
+              }
+            },
+            "required": [
+              "txn_id",
+              "account_id",
+              "customer_id",
+              "direction",
+              "amount_paise",
+              "currency",
+              "rail",
+              "txn_type",
+              "status",
+              "status_reason_code",
+              "failure_reason_code",
+              "hold_reason",
+              "expected_credit_by",
+              "utr",
+              "rrn",
+              "npci_txn_id",
+              "counterparty_name",
+              "counterparty_vpa",
+              "counterparty_account_masked",
+              "counterparty_ifsc",
+              "merchant_id",
+              "mcc",
+              "channel",
+              "geo_city",
+              "narration",
+              "remarks",
+              "initiated_at",
+              "posted_at",
+              "value_date",
+              "balance_after_paise",
+              "risk_score",
+              "is_flagged",
+              "amount_display"
+            ],
+            "type": "object"
+          },
+          "type": "array"
+        },
+        "next_cursor": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "description": "Pass back with the same filters for the next page; null on the last."
+        }
+      },
+      "required": [
+        "items",
+        "next_cursor"
+      ],
+      "type": "object"
+    },
+    "title": "Search transactions"
   }
 }

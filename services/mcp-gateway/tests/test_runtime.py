@@ -7,6 +7,7 @@ from fastmcp import Client
 from fastmcp.server.context import Context
 from gateway_harness import FakeCoreApi, access_token, gateway
 from pydantic import SecretStr, ValidationError
+from signed import TEST_KEY
 
 from kosha_domain.ids import IdPrefix, new_id
 from mcp_gateway.errors import InternalError
@@ -54,3 +55,17 @@ async def test_a_tool_run_outside_the_pipeline_is_a_defect_not_a_crash() -> None
         core_api(ctx)
     with pytest.raises(InternalError):
         await principal(ctx)
+
+
+async def test_without_cursor_keys_a_paginated_search_is_a_defect_not_a_bare_page() -> None:
+    settings = Settings(internal_signing_key=SecretStr(TEST_KEY))
+    server = gateway(FakeCoreApi(), access_token(), settings=settings)
+
+    async with Client(server) as client:
+        result = await client.call_tool(
+            "search_transactions", {"account_id": new_id(IdPrefix.ACCOUNT)}, raise_on_error=False
+        )
+
+    assert result.is_error
+    assert result.structured_content is not None
+    assert result.structured_content["error"]["code"] == "internal"

@@ -37,15 +37,24 @@ class Settings(BaseSettings):
 
     internal_signing_key: SecretStr | None = None
     """The key requests to core-api are signed with (ADR 0013): core-api's current key."""
+    cursor_keys: SecretStr | None = None
+    """Comma-separated keys that sign pagination cursors, current first (LLD §5)."""
 
     machine_client_roles: dict[str, Role] = {}
     """Role of each service client that authenticates with client credentials (ADR 0016),
     as JSON: `{"e2e-runner": "demo_readonly"}`."""
 
-    @field_validator("internal_signing_key")
+    @field_validator("internal_signing_key", "cursor_keys")
     @classmethod
-    def _key_is_long_enough(cls, value: SecretStr | None) -> SecretStr | None:
-        if value is not None and len(value.get_secret_value().encode()) < MIN_KEY_BYTES:
-            msg = f"the internal signing key must be at least {MIN_KEY_BYTES} bytes"
+    def _keys_are_long_enough(cls, value: SecretStr | None) -> SecretStr | None:
+        if value is not None and any(
+            len(key.encode()) < MIN_KEY_BYTES for key in split_keys(value.get_secret_value())
+        ):
+            msg = f"each key must be at least {MIN_KEY_BYTES} bytes"
             raise ValueError(msg)
         return value
+
+
+def split_keys(keys: str) -> list[str]:
+    """A comma-separated key list, current key first."""
+    return [key.strip() for key in keys.split(",") if key.strip()]
