@@ -2,7 +2,7 @@
 
 > Read at the start of every session; rewrite at the end of every session. Durable lessons go to [MEMORY.md](MEMORY.md), standing rules to [CLAUDE.md](CLAUDE.md).
 
-**Last updated:** 2026-11-25 · **Current release:** v0.2.0 (v0.3.0 pending in #3) · **Phase in progress:** P3 MCP gateway: foundation (#23), real-data tests and KYC (#28), payments tools (this PR) · **Next:** risk, knowledge and write tools, then JWT, rate limits and audit
+**Last updated:** 2026-11-25 · **Current release:** v0.2.0 (v0.3.0 pending in #3) · **Phase in progress:** P3 MCP gateway: foundation (#23), real-data tests and KYC (#28), payments tools (#30) · **Next:** risk, knowledge and write tools, then JWT, rate limits and audit
 
 ## Where things stand
 
