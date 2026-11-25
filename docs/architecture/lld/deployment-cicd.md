@@ -99,6 +99,7 @@ The virtualenv layer is reproducible bit for bit: uv's `uv_cache.json` (source t
 | Dependency layer separated from source layer; venv layer reproducible | Code changes rebuild in ~7 s |
 | `--frozen` from `uv.lock` | Reproducible builds; lockfile drift fails the build |
 | BuildKit cache mounts + GitHub Actions cache (`type=gha`) | Warm CI builds |
+| Debian security updates applied in the runtime stage, keyed by `SECURITY_PATCHES_AS_OF` (CI passes the UTC day) | Fixes published after the base image ship the next day; without the key, the cache would replay an old upgrade until the base digest moved |
 | `linux/arm64` (Graviton) | ~20% cheaper Lambda compute |
 | Non-root user (uid 10001); code root-owned and read-only | Process cannot modify itself |
 | Lambda Web Adapter as extension | Same image serves HTTP locally and on Lambda; the adapter waits on `/healthz`, never on `/readyz`, so a database outage cannot stop instances starting |
