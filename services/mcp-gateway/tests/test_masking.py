@@ -4,7 +4,7 @@ A view model declares how each sensitive field is masked, and which scope reveal
 the field's type; `mask` applies the declarations to any model, nested ones included.
 """
 
-from typing import Any, cast
+from typing import Annotated, Any, cast
 
 import pytest
 from hypothesis import given
@@ -13,12 +13,14 @@ from pydantic import BaseModel, ConfigDict
 
 from mcp_gateway.auth.scopes import ROLE_SCOPES, Role, Scope
 from mcp_gateway.masking import (
+    AML_ONLY,
     Aadhaar,
     AccountNumber,
     BirthDate,
     CounterpartyVpa,
     Email,
     Mobile,
+    OwnVpa,
     Pan,
     mask,
     masked_fields,
@@ -138,6 +140,30 @@ def test_masked_fields_lists_each_rule_by_field_name() -> None:
 
     assert set(rules) == {"mobile", "email", "date_of_birth"}
     assert rules["mobile"].unless is Scope.KYC_PII
+
+
+class Device(BaseModel):
+    model_config = ConfigDict(frozen=True)
+
+    vpa: OwnVpa
+    ip_address: Annotated[str | None, AML_ONLY]
+    geo_lat: Annotated[float | None, AML_ONLY]
+
+
+DEVICE = Device(vpa="9876547890@kosha", ip_address="203.0.113.7", geo_lat=12.9716)
+
+
+def test_a_customers_own_vpa_is_masked_like_their_mobile_unless_kyc_pii() -> None:
+    assert mask(DEVICE, NONE).vpa == "98***@kosha", "a VPA can carry the full mobile number"
+    assert mask(DEVICE, {Scope.KYC_PII}).vpa == "9876547890@kosha"
+
+
+def test_withheld_fields_are_removed_unless_the_caller_holds_aml_read() -> None:
+    withheld = mask(DEVICE, {Scope.KYC_PII})
+    revealed = mask(DEVICE, {Scope.AML_READ})
+
+    assert (withheld.ip_address, withheld.geo_lat) == (None, None)
+    assert (revealed.ip_address, revealed.geo_lat) == ("203.0.113.7", 12.9716)
 
 
 # --------------------------------------------------------------- properties
