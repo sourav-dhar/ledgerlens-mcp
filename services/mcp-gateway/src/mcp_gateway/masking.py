@@ -33,6 +33,25 @@ class Masked:
         return self.unless is not None and self.unless in scopes
 
 
+@dataclass(frozen=True, slots=True)
+class Withheld:
+    """Field metadata: the value is left out (``None``) unless the caller holds ``unless``.
+
+    For data only some Roles need at all, such as a device's IP address or location.
+    """
+
+    unless: Scope
+
+    def style(self, _value: object) -> None:
+        return None
+
+    def reveals_to(self, scopes: Collection[Scope]) -> bool:
+        return self.unless in scopes
+
+
+type Rule = Masked | Withheld
+
+
 def _last4(prefix: str) -> Callable[[str], str]:
     """A fixed-width prefix and the last four characters: the length is hidden too."""
 
@@ -67,22 +86,26 @@ Aadhaar = Annotated[str, Masked(_last4("XXXX XXXX "))]
 AccountNumber = Annotated[str, Masked(_last4("XXXXXX"))]
 """Never revealed through MCP."""
 CounterpartyVpa = Annotated[str, Masked(_vpa, unless=Scope.AML_READ)]
+OwnVpa = Annotated[str, Masked(_vpa, unless=Scope.KYC_PII)]
+"""A Customer's own VPA: often their mobile number (``9876543210@kosha``), so masked like it."""
+AML_ONLY = Withheld(unless=Scope.AML_READ)
+"""Device and location detail: ``Annotated[str | None, AML_ONLY]`` is ``None`` without aml:read."""
 
 
-def _rule(field: FieldInfo) -> Masked | None:
+def _rule(field: FieldInfo) -> Rule | None:
     """The field's rule, whether declared as ``Mobile`` or as ``Mobile | None``."""
     for item in field.metadata:
-        if isinstance(item, Masked):
+        if isinstance(item, Masked | Withheld):
             return item
     for member in get_args(field.annotation):
         if get_origin(member) is Annotated:
             for item in member.__metadata__:
-                if isinstance(item, Masked):
+                if isinstance(item, Masked | Withheld):
                     return item
     return None
 
 
-def masked_fields(model: type[BaseModel]) -> Mapping[str, Masked]:
+def masked_fields(model: type[BaseModel]) -> Mapping[str, Rule]:
     """The masking rule of each field of ``model`` that has one."""
     return {
         name: rule
