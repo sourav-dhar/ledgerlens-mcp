@@ -80,7 +80,11 @@ LABEL org.opencontainers.image.title="ledgerlens-${SERVICE}" \
 # Debian publishes security fixes before the official Python image is rebuilt; apply them so
 # the image ships with no fixable HIGH/CRITICAL CVEs (Trivy gates this in CI). The base digest
 # stays pinned; only security patches float, and Dependabot moves the base forward weekly.
-RUN apt-get update \
+# A layer cache would replay an old upgrade forever, so CI passes the day as
+# SECURITY_PATCHES_AS_OF: this layer is rebuilt once a day, and everything else stays cached.
+ARG SECURITY_PATCHES_AS_OF=unpinned
+RUN echo "security patches as of ${SECURITY_PATCHES_AS_OF}" \
+ && apt-get update \
  && apt-get upgrade -y --no-install-recommends \
  && apt-get clean \
  && rm -rf /var/lib/apt/lists/* /var/cache/apt/archives/* /var/log/apt/* /var/log/dpkg.log \
