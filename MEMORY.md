@@ -4,6 +4,7 @@
 
 ## Lessons learned
 
+- **2026-11-25 — The session scratchpad does not survive a reboot.** A draft test parked there was gone two days later and had to be rewritten from the transcript. Park unfinished work on a pushed branch (or a draft PR) instead.
 - **2026-11-21 — A stage that starts failing closed breaks anonymous callers elsewhere.** The image smoke test called a tool without identity and expected success; once `Authorize` landed it failed in CI only. When adding an authentication or authorization stage, grep CI, compose and scripts for anonymous calls, and make smoke tests assert the security property (refused) rather than the happy path.
 - **2026-11-21 — FastMCP masks any exception that is not a `ToolError` before middleware sees it.** It logs the traceback and raises a generic `ToolError`, so middleware cannot tell a not-found from a crash. Gateway errors subclass `ToolError` (re-raised untouched, logged at their own `log_level`), and the `ErrorResults` middleware renders them; error results skip output-schema validation in the Python and TypeScript SDK clients.
 - **2026-11-21 — `uv sync` without `--all-packages` prunes the other workspace members.** After a dependency change, plain `uv sync` removed psycopg and the `pg_container` plugin failed to load. Always `uv sync --all-packages` (as CI does).
