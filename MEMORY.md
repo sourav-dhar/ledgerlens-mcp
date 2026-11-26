@@ -4,6 +4,7 @@
 
 ## Lessons learned
 
+- **2026-11-26 — A failed commit can be followed by a push that looks fine.** The CRLF snapshot (2026-11-14) failed the commit again, but `git push` on the next line still ran and pushed the old head. Chain `git commit ... && git push` and check `git log -1` before reporting a commit; after regenerating a snapshot, run the hooks (`git add` then `pre-commit run`) before committing.
 - **2026-11-25 — Identifiers can embed other personal data.** A VPA is often the mobile number (`9876543210@kosha`), so masking the mobile field alone still leaked it through the Account's VPA list. When adding a masking rule, look for every field that can carry the same value, and read the generator to see what real values look like.
 - **2026-11-25 — The session scratchpad does not survive a reboot.** A draft test parked there was gone two days later and had to be rewritten from the transcript. Park unfinished work on a pushed branch (or a draft PR) instead.
 - **2026-11-21 — A stage that starts failing closed breaks anonymous callers elsewhere.** The image smoke test called a tool without identity and expected success; once `Authorize` landed it failed in CI only. When adding an authentication or authorization stage, grep CI, compose and scripts for anonymous calls, and make smoke tests assert the security property (refused) rather than the happy path.
