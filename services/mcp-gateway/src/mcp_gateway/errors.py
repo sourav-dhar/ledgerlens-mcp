@@ -31,6 +31,7 @@ class ErrorCode(StrEnum):
     INVALID_ARGUMENT = "invalid_argument"
     NOT_FOUND = "not_found"
     CONFLICT = "conflict"
+    DECLINED = "declined"
     RATE_LIMITED = "rate_limited"
     OVERLOADED = "overloaded"
     DEADLINE_EXCEEDED = "deadline_exceeded"
@@ -101,6 +102,13 @@ class ConflictError(GatewayError):
     """An idempotency key reused for another request, or a change the domain refuses."""
 
     code = ErrorCode.CONFLICT
+    level = logging.INFO
+
+
+class DeclinedError(GatewayError):
+    """The user did not agree to a write, so nothing was written."""
+
+    code = ErrorCode.DECLINED
     level = logging.INFO
 
 
