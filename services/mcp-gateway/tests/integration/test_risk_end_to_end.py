@@ -5,6 +5,7 @@ Unit tests answer from core-api's response models; these prove the views parse r
 that a queue pages through signed cursors to its last alert.
 """
 
+import secrets
 from datetime import UTC, datetime, timedelta
 from typing import Any
 
@@ -35,7 +36,9 @@ async def test_the_queue_pages_through_signed_cursors_soonest_sla_first(
     core_api_app: FastAPI, committed: psycopg.Connection
 ) -> None:
     customer_id = rows.customer(committed)
-    rule_id = rows.aml_rule(committed, name="Cash just below ₹10 lakh", severity="critical")
+    # Rule names are unique and committed rows are shared by the whole session.
+    rule_name = f"Cash just below ₹10 lakh {secrets.token_hex(4)}"
+    rule_id = rows.aml_rule(committed, name=rule_name, severity="critical")
     later, soonest, middle = (
         rows.aml_alert(committed, customer_id, rule_id, sla_due_at=NOW + timedelta(hours=h))
         for h in (3, 1, 2)
@@ -61,9 +64,7 @@ async def test_the_queue_pages_through_signed_cursors_soonest_sla_first(
     seen = [item["alert_id"] for item in first["items"] + last["items"]]
     assert seen == [soonest, middle, later]
     assert last["next_cursor"] is None
-    assert {(i["rule_name"], i["severity"]) for i in first["items"]} == {
-        ("Cash just below ₹10 lakh", "critical")
-    }
+    assert {(i["rule_name"], i["severity"]) for i in first["items"]} == {(rule_name, "critical")}
 
 
 async def test_an_alert_shows_its_thresholds_and_real_evidence(
