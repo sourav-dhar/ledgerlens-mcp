@@ -284,6 +284,556 @@
     },
     "title": "Account summary"
   },
+  "get_aml_alert": {
+    "annotations": {
+      "destructiveHint": false,
+      "idempotentHint": true,
+      "openWorldHint": false,
+      "readOnlyHint": true
+    },
+    "description": "One AML alert: the rule and thresholds it fired on, and the Transactions it cites.",
+    "inputSchema": {
+      "additionalProperties": false,
+      "properties": {
+        "alert_id": {
+          "description": "A AML alert ID: `alr_` followed by a ULID.",
+          "pattern": "^alr_[0-7][0-9A-HJKMNP-TV-Z]{25}$",
+          "type": "string"
+        }
+      },
+      "required": [
+        "alert_id"
+      ],
+      "type": "object"
+    },
+    "name": "get_aml_alert",
+    "outputSchema": {
+      "properties": {
+        "alert_id": {
+          "type": "string"
+        },
+        "assigned_to": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "closed_at": {
+          "anyOf": [
+            {
+              "format": "date-time",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "created_at": {
+          "format": "date-time",
+          "type": "string"
+        },
+        "customer_id": {
+          "type": "string"
+        },
+        "disposition": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "narrative": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "rule": {
+          "properties": {
+            "enabled": {
+              "type": "boolean"
+            },
+            "name": {
+              "type": "string"
+            },
+            "params": {
+              "additionalProperties": true,
+              "type": "object"
+            },
+            "rule_id": {
+              "type": "string"
+            },
+            "severity": {
+              "enum": [
+                "low",
+                "medium",
+                "high",
+                "critical"
+              ],
+              "type": "string"
+            },
+            "typology": {
+              "description": "A recognised money-laundering or fraud pattern (see GLOSSARY: Typology).",
+              "enum": [
+                "structuring",
+                "rapid_movement",
+                "mule_account",
+                "round_tripping",
+                "dormant_reactivation",
+                "high_risk_geo",
+                "velocity"
+              ],
+              "type": "string"
+            }
+          },
+          "required": [
+            "rule_id",
+            "name",
+            "typology",
+            "severity",
+            "params",
+            "enabled"
+          ],
+          "type": "object"
+        },
+        "rule_id": {
+          "type": "string"
+        },
+        "rule_name": {
+          "type": "string"
+        },
+        "score": {
+          "type": "number"
+        },
+        "severity": {
+          "enum": [
+            "low",
+            "medium",
+            "high",
+            "critical"
+          ],
+          "type": "string"
+        },
+        "sla_due_at": {
+          "format": "date-time",
+          "type": "string"
+        },
+        "status": {
+          "enum": [
+            "open",
+            "assigned",
+            "in_review",
+            "pending_info",
+            "on_hold",
+            "escalated",
+            "closed_false_positive",
+            "closed_no_action",
+            "closed_str_filed"
+          ],
+          "type": "string"
+        },
+        "str_reference": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "triggering_transactions": {
+          "items": {
+            "properties": {
+              "account_id": {
+                "type": "string"
+              },
+              "amount_display": {
+                "readOnly": true,
+                "type": "string"
+              },
+              "amount_paise": {
+                "type": "integer"
+              },
+              "balance_after_paise": {
+                "anyOf": [
+                  {
+                    "type": "integer"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ]
+              },
+              "channel": {
+                "description": "The touchpoint where a Transaction was initiated (see GLOSSARY: Channel).",
+                "enum": [
+                  "mobile_app",
+                  "web",
+                  "pos",
+                  "atm",
+                  "api"
+                ],
+                "type": "string"
+              },
+              "counterparty_account_masked": {
+                "anyOf": [
+                  {
+                    "type": "string"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ]
+              },
+              "counterparty_ifsc": {
+                "anyOf": [
+                  {
+                    "type": "string"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ]
+              },
+              "counterparty_name": {
+                "anyOf": [
+                  {
+                    "type": "string"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ]
+              },
+              "counterparty_vpa": {
+                "anyOf": [
+                  {
+                    "type": "string"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ]
+              },
+              "currency": {
+                "type": "string"
+              },
+              "customer_id": {
+                "type": "string"
+              },
+              "direction": {
+                "description": "Whether a Transaction takes money out of the Account or brings it in.",
+                "enum": [
+                  "debit",
+                  "credit"
+                ],
+                "type": "string"
+              },
+              "expected_credit_by": {
+                "anyOf": [
+                  {
+                    "format": "date-time",
+                    "type": "string"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ]
+              },
+              "failure_reason_code": {
+                "anyOf": [
+                  {
+                    "type": "string"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ]
+              },
+              "geo_city": {
+                "anyOf": [
+                  {
+                    "type": "string"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ]
+              },
+              "hold_reason": {
+                "anyOf": [
+                  {
+                    "type": "string"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ]
+              },
+              "initiated_at": {
+                "format": "date-time",
+                "type": "string"
+              },
+              "is_flagged": {
+                "type": "boolean"
+              },
+              "mcc": {
+                "anyOf": [
+                  {
+                    "type": "integer"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ]
+              },
+              "merchant_id": {
+                "anyOf": [
+                  {
+                    "type": "string"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ]
+              },
+              "narration": {
+                "type": "string"
+              },
+              "npci_txn_id": {
+                "anyOf": [
+                  {
+                    "type": "string"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ]
+              },
+              "posted_at": {
+                "anyOf": [
+                  {
+                    "format": "date-time",
+                    "type": "string"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ]
+              },
+              "rail": {
+                "description": "The payment network a Transaction travels on (see GLOSSARY: Rail).",
+                "enum": [
+                  "upi",
+                  "imps",
+                  "neft",
+                  "rtgs",
+                  "card_pos",
+                  "card_ecom",
+                  "atm",
+                  "nach",
+                  "internal"
+                ],
+                "type": "string"
+              },
+              "remarks": {
+                "anyOf": [
+                  {
+                    "type": "string"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ]
+              },
+              "risk_score": {
+                "anyOf": [
+                  {
+                    "type": "integer"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ]
+              },
+              "rrn": {
+                "anyOf": [
+                  {
+                    "type": "string"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ]
+              },
+              "status": {
+                "enum": [
+                  "initiated",
+                  "authorised",
+                  "processing",
+                  "pending",
+                  "success",
+                  "credit_delayed",
+                  "deemed_success",
+                  "on_hold",
+                  "under_review",
+                  "pending_settlement",
+                  "settled",
+                  "failed",
+                  "timed_out",
+                  "declined",
+                  "cancelled",
+                  "expired",
+                  "returned",
+                  "reversal_initiated",
+                  "reversed",
+                  "partially_reversed",
+                  "refunded",
+                  "chargeback_initiated"
+                ],
+                "type": "string"
+              },
+              "status_reason_code": {
+                "anyOf": [
+                  {
+                    "type": "string"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ]
+              },
+              "txn_id": {
+                "type": "string"
+              },
+              "txn_type": {
+                "description": "The economic purpose of a Transaction, independent of its Rail.",
+                "enum": [
+                  "p2p",
+                  "p2m",
+                  "salary",
+                  "emi",
+                  "bill_pay",
+                  "refund",
+                  "reversal",
+                  "cash_withdrawal",
+                  "interest_credit",
+                  "charges",
+                  "fd_booking"
+                ],
+                "type": "string"
+              },
+              "utr": {
+                "anyOf": [
+                  {
+                    "type": "string"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ]
+              },
+              "value_date": {
+                "anyOf": [
+                  {
+                    "format": "date",
+                    "type": "string"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ]
+              }
+            },
+            "required": [
+              "txn_id",
+              "account_id",
+              "customer_id",
+              "direction",
+              "amount_paise",
+              "currency",
+              "rail",
+              "txn_type",
+              "status",
+              "status_reason_code",
+              "failure_reason_code",
+              "hold_reason",
+              "expected_credit_by",
+              "utr",
+              "rrn",
+              "npci_txn_id",
+              "counterparty_name",
+              "counterparty_vpa",
+              "counterparty_account_masked",
+              "counterparty_ifsc",
+              "merchant_id",
+              "mcc",
+              "channel",
+              "geo_city",
+              "narration",
+              "remarks",
+              "initiated_at",
+              "posted_at",
+              "value_date",
+              "balance_after_paise",
+              "risk_score",
+              "is_flagged",
+              "amount_display"
+            ],
+            "type": "object"
+          },
+          "type": "array"
+        },
+        "typology": {
+          "description": "A recognised money-laundering or fraud pattern (see GLOSSARY: Typology).",
+          "enum": [
+            "structuring",
+            "rapid_movement",
+            "mule_account",
+            "round_tripping",
+            "dormant_reactivation",
+            "high_risk_geo",
+            "velocity"
+          ],
+          "type": "string"
+        }
+      },
+      "required": [
+        "alert_id",
+        "customer_id",
+        "rule_id",
+        "rule_name",
+        "typology",
+        "severity",
+        "score",
+        "status",
+        "assigned_to",
+        "sla_due_at",
+        "created_at",
+        "closed_at",
+        "narrative",
+        "disposition",
+        "str_reference",
+        "rule",
+        "triggering_transactions"
+      ],
+      "type": "object"
+    },
+    "title": "AML alert"
+  },
   "get_customer_profile": {
     "annotations": {
       "destructiveHint": false,
@@ -1624,6 +2174,239 @@
       "type": "object"
     },
     "title": "Transaction detail"
+  },
+  "list_aml_alerts": {
+    "annotations": {
+      "destructiveHint": false,
+      "idempotentHint": true,
+      "openWorldHint": false,
+      "readOnlyHint": true
+    },
+    "description": "The AML alert queue, soonest SLA first, a page at a time.\n\nEach alert names the rule it fired on and its severity. To read the next page, call\nagain with the same filters and the previous page's next_cursor.",
+    "inputSchema": {
+      "additionalProperties": false,
+      "properties": {
+        "assigned_to": {
+          "anyOf": [
+            {
+              "maxLength": 128,
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "A Staff member's ID."
+        },
+        "cursor": {
+          "anyOf": [
+            {
+              "maxLength": 2048,
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "next_cursor from the previous page."
+        },
+        "customer_id": {
+          "anyOf": [
+            {
+              "description": "A Customer ID: `cus_` followed by a ULID.",
+              "pattern": "^cus_[0-7][0-9A-HJKMNP-TV-Z]{25}$",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "limit": {
+          "default": 25,
+          "maximum": 100,
+          "minimum": 1,
+          "type": "integer"
+        },
+        "statuses": {
+          "anyOf": [
+            {
+              "items": {
+                "enum": [
+                  "open",
+                  "assigned",
+                  "in_review",
+                  "pending_info",
+                  "on_hold",
+                  "escalated",
+                  "closed_false_positive",
+                  "closed_no_action",
+                  "closed_str_filed"
+                ],
+                "type": "string"
+              },
+              "type": "array"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "typologies": {
+          "anyOf": [
+            {
+              "items": {
+                "description": "A recognised money-laundering or fraud pattern (see GLOSSARY: Typology).",
+                "enum": [
+                  "structuring",
+                  "rapid_movement",
+                  "mule_account",
+                  "round_tripping",
+                  "dormant_reactivation",
+                  "high_risk_geo",
+                  "velocity"
+                ],
+                "type": "string"
+              },
+              "type": "array"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        }
+      },
+      "type": "object"
+    },
+    "name": "list_aml_alerts",
+    "outputSchema": {
+      "properties": {
+        "items": {
+          "items": {
+            "properties": {
+              "alert_id": {
+                "type": "string"
+              },
+              "assigned_to": {
+                "anyOf": [
+                  {
+                    "type": "string"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ]
+              },
+              "closed_at": {
+                "anyOf": [
+                  {
+                    "format": "date-time",
+                    "type": "string"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ]
+              },
+              "created_at": {
+                "format": "date-time",
+                "type": "string"
+              },
+              "customer_id": {
+                "type": "string"
+              },
+              "rule_id": {
+                "type": "string"
+              },
+              "rule_name": {
+                "type": "string"
+              },
+              "score": {
+                "type": "number"
+              },
+              "severity": {
+                "enum": [
+                  "low",
+                  "medium",
+                  "high",
+                  "critical"
+                ],
+                "type": "string"
+              },
+              "sla_due_at": {
+                "format": "date-time",
+                "type": "string"
+              },
+              "status": {
+                "enum": [
+                  "open",
+                  "assigned",
+                  "in_review",
+                  "pending_info",
+                  "on_hold",
+                  "escalated",
+                  "closed_false_positive",
+                  "closed_no_action",
+                  "closed_str_filed"
+                ],
+                "type": "string"
+              },
+              "typology": {
+                "description": "A recognised money-laundering or fraud pattern (see GLOSSARY: Typology).",
+                "enum": [
+                  "structuring",
+                  "rapid_movement",
+                  "mule_account",
+                  "round_tripping",
+                  "dormant_reactivation",
+                  "high_risk_geo",
+                  "velocity"
+                ],
+                "type": "string"
+              }
+            },
+            "required": [
+              "alert_id",
+              "customer_id",
+              "rule_id",
+              "rule_name",
+              "typology",
+              "severity",
+              "score",
+              "status",
+              "assigned_to",
+              "sla_due_at",
+              "created_at",
+              "closed_at"
+            ],
+            "type": "object"
+          },
+          "type": "array"
+        },
+        "next_cursor": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "description": "Pass back with the same filters for the next page; null on the last."
+        }
+      },
+      "required": [
+        "items",
+        "next_cursor"
+      ],
+      "type": "object"
+    },
+    "title": "AML alert queue"
   },
   "list_kyc_documents": {
     "annotations": {
