@@ -34,6 +34,7 @@ services/mcp-gateway/src/mcp_gateway/
 ├── prompts.py           # investigate_suspicious_activity, kyc_periodic_review, dispute_triage
 ├── masking.py           # role-aware field masking (pure functions)
 ├── cursors.py           # HMAC-signed opaque pagination cursors
+├── confirmation.py      # has the user agreed to this write? elicitation in either era, else confirm (ADR 0017)
 ├── errors.py            # error taxonomy; ErrorResults middleware -> isError results with a structured body
 └── clients/
     ├── core_api.py      # typed httpx client wrapped in kosha_resilience policies
@@ -118,7 +119,7 @@ def register(mcp: FastMCP) -> None:
 | A write is retried by the gateway only with its original key (2 attempts, on connect errors, timeouts, `503`, `504`) | A response lost after `core-api` committed comes back as the stored replay, not a second dispute ([System design §8](../system-design.md#8-idempotency-end-to-end)) |
 | The audit middleware mints `audit_id` once per tool call | `POST /v1/audit` inserts with `ON CONFLICT DO NOTHING`, so a retried audit write records the call once |
 | Write tools carry `destructiveHint: False, idempotentHint: True` | Accurate hints help clients decide when to confirm |
-| Write tools request confirmation via MCP elicitation when the client supports it | Falls back to an explicit `confirm: true` argument |
+| Write tools request confirmation via MCP elicitation when the client supports it, in either protocol era (`input_required` on 2026-07-28 connections, `elicitation/create` before) | Falls back to an explicit `confirm: true` only when the client cannot ask; ignored when it can, since a model sets arguments ([ADR 0017](../../adr/0017-writes-confirmed-by-elicitation-in-either-protocol-era.md)) |
 
 ## 4. Error taxonomy
 
@@ -131,6 +132,7 @@ Tool failures are returned as MCP tool results with `isError: true` and a struct
 | `invalid_argument` | Pydantic validation failed; tampered cursor | Tool error | No (fix input) |
 | `not_found` | Entity absent or not visible to caller | Tool error | No |
 | `conflict` | Idempotency key reused with different payload; illegal state transition | Tool error | No |
+| `declined` | The user said no to, declined or dismissed a write's confirmation; nothing was written | Tool error | No (ask the user again) |
 | `rate_limited` | Token bucket empty | HTTP 429 + `Retry-After` | Yes, after delay |
 | `overloaded` | Load shed | HTTP 503 + `Retry-After` | Yes, after delay |
 | `deadline_exceeded` | Budget exhausted | Tool error | Yes, once |
@@ -170,8 +172,8 @@ Encoding: `base64url(json(payload)) + "." + base64url(sig)`. Verification failur
 | `list_aml_alerts` | `aml:read` | masked | Soonest SLA first; signed cursor over `(sla_due_at, alert_id)` bound to the filters and the caller |
 | `get_aml_alert` | `aml:read` | masked | Rule thresholds, narrative and the triggering Transactions in the payments view (counterparties visible with `aml:read`; no device detail) |
 | `screen_entity` | `screening:run` | n/a | Behind vendor breaker; `status: deferred` when open |
-| `raise_dispute` | `disputes:write` | n/a | Idempotent, audited, emits outbox event |
-| `flag_transaction_for_review` | `reviews:write` | n/a | Idempotent, audited, emits outbox event |
+| `raise_dispute` | `disputes:write` | n/a | Idempotent (`idempotency_key`, `replayed` on a retry), confirmed by the user (ADR 0017), audited, emits outbox event; amounts with `*_display` |
+| `flag_transaction_for_review` | `reviews:write` | n/a | Idempotent, confirmed by the user (ADR 0017), audited, marks the Transaction flagged, emits outbox event |
 | `search_knowledge_base` | `kb:read` | n/a | Role's ceiling enforced by RLS; best-first passages with citations under a reference-only `notice`; at most 8 passages and 12 KB (`omitted` counts the rest; RAG LLD §4) |
 | `get_document` | `kb:read` | n/a | Same ceiling; a Document above it reads as not found; read in windows of chunks under 12 KB (`from_chunk` / `next_chunk`) |
 | `get_service_health` | `customers:read` | n/a | Breaker states, dependency latency |
