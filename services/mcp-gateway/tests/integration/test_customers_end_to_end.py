@@ -5,7 +5,6 @@ parse what core-api actually returns from real rows, and that masking holds on t
 """
 
 import secrets
-from collections.abc import AsyncIterator
 from typing import Any
 
 import db_rows as rows
@@ -16,20 +15,10 @@ from fastapi import FastAPI
 from fastmcp import Client
 from gateway_harness import access_token, gateway
 
-from core_api.app import create_app
-from core_api.settings import Settings as CoreApiSettings
 from kosha_domain.ids import IdPrefix, new_id
 from mcp_gateway.auth.scopes import Role
 
 pytestmark = [pytest.mark.integration, pytest.mark.anyio]
-
-
-@pytest.fixture
-async def core_api_app(api_settings: CoreApiSettings) -> AsyncIterator[FastAPI]:
-    """core-api with its pool open on the scratch database, as in production."""
-    app = create_app(api_settings)
-    async with app.router.lifespan_context(app):
-        yield app
 
 
 @pytest.fixture

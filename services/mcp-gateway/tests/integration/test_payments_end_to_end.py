@@ -6,7 +6,6 @@ to its last row, and that masking and withholding hold on that data.
 """
 
 import secrets
-from collections.abc import AsyncIterator
 from dataclasses import dataclass
 from datetime import UTC, datetime, timedelta
 from typing import Any
@@ -19,8 +18,6 @@ from fastapi import FastAPI
 from fastmcp import Client
 from gateway_harness import access_token, gateway
 
-from core_api.app import create_app
-from core_api.settings import Settings as CoreApiSettings
 from mcp_gateway.auth.scopes import Role
 
 pytestmark = [pytest.mark.integration, pytest.mark.anyio]
@@ -33,13 +30,6 @@ class Ledger:
     mobile: str
     txn_ids: list[str]
     """Newest first."""
-
-
-@pytest.fixture
-async def core_api_app(api_settings: CoreApiSettings) -> AsyncIterator[FastAPI]:
-    app = create_app(api_settings)
-    async with app.router.lifespan_context(app):
-        yield app
 
 
 @pytest.fixture
