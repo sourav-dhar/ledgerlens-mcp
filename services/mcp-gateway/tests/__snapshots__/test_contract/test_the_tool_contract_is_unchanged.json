@@ -1,4 +1,116 @@
 {
+  "flag_transaction_for_review": {
+    "annotations": {
+      "destructiveHint": false,
+      "idempotentHint": true,
+      "openWorldHint": false,
+      "readOnlyHint": false
+    },
+    "description": "Flag a Transaction for review by the fraud team, once the user agrees.\n\nPass a new idempotency_key per flag and reuse it to retry: a retry returns the review\nalready queued, marked replayed.",
+    "inputSchema": {
+      "additionalProperties": false,
+      "properties": {
+        "confirm": {
+          "default": false,
+          "description": "Only for clients that cannot ask the user themselves: true once the user has agreed to this exact write. Clients that can ask always do.",
+          "type": "boolean"
+        },
+        "idempotency_key": {
+          "description": "A new UUID for each intended write; reuse it only to retry that write.",
+          "format": "uuid",
+          "type": "string"
+        },
+        "priority": {
+          "default": "normal",
+          "enum": [
+            "low",
+            "normal",
+            "high",
+            "urgent"
+          ],
+          "type": "string"
+        },
+        "reason": {
+          "maxLength": 500,
+          "minLength": 3,
+          "type": "string"
+        },
+        "txn_id": {
+          "description": "A Transaction ID: `txn_` followed by a ULID.",
+          "pattern": "^txn_[0-7][0-9A-HJKMNP-TV-Z]{25}$",
+          "type": "string"
+        }
+      },
+      "required": [
+        "txn_id",
+        "reason",
+        "idempotency_key"
+      ],
+      "type": "object"
+    },
+    "name": "flag_transaction_for_review",
+    "outputSchema": {
+      "properties": {
+        "created_at": {
+          "format": "date-time",
+          "type": "string"
+        },
+        "created_by": {
+          "type": "string"
+        },
+        "priority": {
+          "enum": [
+            "low",
+            "normal",
+            "high",
+            "urgent"
+          ],
+          "type": "string"
+        },
+        "reason": {
+          "type": "string"
+        },
+        "replayed": {
+          "default": false,
+          "description": "True when this retry returned the review queued earlier.",
+          "type": "boolean"
+        },
+        "review_id": {
+          "type": "string"
+        },
+        "status": {
+          "enum": [
+            "queued",
+            "in_review",
+            "on_hold",
+            "cleared",
+            "escalated_to_aml",
+            "blocked"
+          ],
+          "type": "string"
+        },
+        "txn_id": {
+          "type": "string"
+        },
+        "txn_initiated_at": {
+          "format": "date-time",
+          "type": "string"
+        }
+      },
+      "required": [
+        "review_id",
+        "txn_id",
+        "txn_initiated_at",
+        "reason",
+        "priority",
+        "status",
+        "created_by",
+        "created_at"
+      ],
+      "type": "object"
+    },
+    "title": "Flag a Transaction for review"
+  },
   "get_account_summary": {
     "annotations": {
       "destructiveHint": false,
@@ -2713,6 +2825,159 @@
       "type": "object"
     },
     "title": "KYC documents"
+  },
+  "raise_dispute": {
+    "annotations": {
+      "destructiveHint": false,
+      "idempotentHint": true,
+      "openWorldHint": false,
+      "readOnlyHint": false
+    },
+    "description": "Raise a dispute on a debit, once the user agrees; due back by the RBI turnaround time.\n\nPass a new idempotency_key per dispute and reuse it to retry: a retry returns the\ndispute already raised, marked replayed.",
+    "inputSchema": {
+      "additionalProperties": false,
+      "properties": {
+        "amount_paise": {
+          "anyOf": [
+            {
+              "exclusiveMinimum": 0,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "The disputed part; defaults to the whole Transaction."
+        },
+        "confirm": {
+          "default": false,
+          "description": "Only for clients that cannot ask the user themselves: true once the user has agreed to this exact write. Clients that can ask always do.",
+          "type": "boolean"
+        },
+        "idempotency_key": {
+          "description": "A new UUID for each intended write; reuse it only to retry that write.",
+          "format": "uuid",
+          "type": "string"
+        },
+        "reason_code": {
+          "enum": [
+            "unauthorised",
+            "goods_not_received",
+            "duplicate",
+            "amount_mismatch",
+            "failed_but_debited",
+            "credit_not_received"
+          ],
+          "type": "string"
+        },
+        "txn_id": {
+          "description": "A Transaction ID: `txn_` followed by a ULID.",
+          "pattern": "^txn_[0-7][0-9A-HJKMNP-TV-Z]{25}$",
+          "type": "string"
+        }
+      },
+      "required": [
+        "txn_id",
+        "reason_code",
+        "idempotency_key"
+      ],
+      "type": "object"
+    },
+    "name": "raise_dispute",
+    "outputSchema": {
+      "properties": {
+        "amount_display": {
+          "readOnly": true,
+          "type": "string"
+        },
+        "amount_paise": {
+          "type": "integer"
+        },
+        "compensation_display": {
+          "readOnly": true,
+          "type": "string"
+        },
+        "compensation_paise": {
+          "type": "integer"
+        },
+        "created_at": {
+          "format": "date-time",
+          "type": "string"
+        },
+        "created_by": {
+          "type": "string"
+        },
+        "customer_id": {
+          "type": "string"
+        },
+        "dispute_id": {
+          "type": "string"
+        },
+        "reason_code": {
+          "enum": [
+            "unauthorised",
+            "goods_not_received",
+            "duplicate",
+            "amount_mismatch",
+            "failed_but_debited",
+            "credit_not_received"
+          ],
+          "type": "string"
+        },
+        "replayed": {
+          "default": false,
+          "description": "True when this retry returned the dispute raised earlier.",
+          "type": "boolean"
+        },
+        "status": {
+          "enum": [
+            "raised",
+            "acknowledged",
+            "awaiting_customer_info",
+            "under_investigation",
+            "on_hold",
+            "chargeback_raised",
+            "pre_arbitration",
+            "arbitration",
+            "resolved_customer_favour",
+            "resolved_merchant_favour",
+            "auto_reversed",
+            "withdrawn",
+            "closed"
+          ],
+          "type": "string"
+        },
+        "tat_due_at": {
+          "format": "date-time",
+          "type": "string"
+        },
+        "txn_id": {
+          "type": "string"
+        },
+        "txn_initiated_at": {
+          "format": "date-time",
+          "type": "string"
+        }
+      },
+      "required": [
+        "dispute_id",
+        "txn_id",
+        "txn_initiated_at",
+        "customer_id",
+        "reason_code",
+        "amount_paise",
+        "status",
+        "tat_due_at",
+        "compensation_paise",
+        "created_by",
+        "created_at",
+        "amount_display",
+        "compensation_display"
+      ],
+      "type": "object"
+    },
+    "title": "Raise a dispute"
   },
   "search_customers": {
     "annotations": {
