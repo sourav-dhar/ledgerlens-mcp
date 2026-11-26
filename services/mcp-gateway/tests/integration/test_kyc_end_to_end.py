@@ -5,7 +5,6 @@ the keyring (ADR 0014) and records the unmasking in the same transaction. These 
 the reveal happens only when asked for, and that each one leaves exactly one record.
 """
 
-from collections.abc import AsyncIterator
 from typing import Any
 
 import db_rows as rows
@@ -16,8 +15,6 @@ from fastapi import FastAPI
 from fastmcp import Client
 from gateway_harness import access_token, gateway
 
-from core_api.app import create_app
-from core_api.settings import Settings as CoreApiSettings
 from kosha_domain.vault import LOCAL_PASSPHRASE, LocalKeyring, PanVault
 from mcp_gateway.auth.scopes import Role
 
@@ -25,13 +22,6 @@ pytestmark = [pytest.mark.integration, pytest.mark.anyio]
 
 VAULT = PanVault(LocalKeyring(LOCAL_PASSPHRASE))
 PAN = "ABCPS1234D"
-
-
-@pytest.fixture
-async def core_api_app(api_settings: CoreApiSettings) -> AsyncIterator[FastAPI]:
-    app = create_app(api_settings)
-    async with app.router.lifespan_context(app):
-        yield app
 
 
 @pytest.fixture
