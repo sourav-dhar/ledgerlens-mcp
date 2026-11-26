@@ -9,6 +9,7 @@ import json
 import logging
 import re
 from collections.abc import AsyncIterator
+from pathlib import Path
 from typing import Annotated, Any
 
 import pytest
@@ -20,6 +21,7 @@ from mcp_gateway.errors import (
     ConflictError,
     DeadlineExceededError,
     DependencyUnavailableError,
+    ErrorCode,
     ErrorResults,
     ForbiddenError,
     GatewayError,
@@ -32,6 +34,18 @@ pytestmark = pytest.mark.anyio
 type McpClient = Client[FastMCPTransport]
 
 TRACE_ID = re.compile(r"^[0-9a-f]{32}$")
+LLD = Path(__file__).parents[3] / "docs" / "architecture" / "lld" / "mcp-gateway.md"
+
+
+def test_the_error_codes_are_the_llds() -> None:
+    """Every code in the LLD's taxonomy (§4) and no other; `degraded` flags a success."""
+    text = LLD.read_text(encoding="utf-8")
+    section = text.split("## 4. Error taxonomy", 1)[1].split("\n## ", 1)[0]
+    codes = set(re.findall(r"^\| `([a-z_]+)` \|", section, flags=re.MULTILINE)) - {"degraded"}
+
+    assert {code.value for code in ErrorCode} == codes
+
+
 INTERNALS = "SELECT pan_token FROM kyc.profiles"
 
 RAISED: dict[str, GatewayError] = {
