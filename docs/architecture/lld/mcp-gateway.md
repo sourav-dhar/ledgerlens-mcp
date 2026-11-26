@@ -172,8 +172,8 @@ Encoding: `base64url(json(payload)) + "." + base64url(sig)`. Verification failur
 | `screen_entity` | `screening:run` | n/a | Behind vendor breaker; `status: deferred` when open |
 | `raise_dispute` | `disputes:write` | n/a | Idempotent, audited, emits outbox event |
 | `flag_transaction_for_review` | `reviews:write` | n/a | Idempotent, audited, emits outbox event |
-| `search_knowledge_base` | `kb:read` | n/a | Results limited by role ceiling via RLS |
-| `get_document` | `kb:read` | n/a | Same ceiling |
+| `search_knowledge_base` | `kb:read` | n/a | Role's ceiling enforced by RLS; best-first passages with citations under a reference-only `notice`; at most 8 passages and 12 KB (`omitted` counts the rest; RAG LLD §4) |
+| `get_document` | `kb:read` | n/a | Same ceiling; a Document above it reads as not found; read in windows of chunks under 12 KB (`from_chunk` / `next_chunk`) |
 | `get_service_health` | `customers:read` | n/a | Breaker states, dependency latency |
 
 ## 7. Masking rules
