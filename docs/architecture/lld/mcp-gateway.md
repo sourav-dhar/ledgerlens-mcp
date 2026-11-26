@@ -167,8 +167,8 @@ Encoding: `base64url(json(payload)) + "." + base64url(sig)`. Verification failur
 | `search_transactions` | `transactions:read` | counterparty masked | Signed cursor bound to the filters and the caller; `amount_display` beside `amount_paise` |
 | `get_transaction` | `transactions:read` | counterparty masked; device and location withheld | Includes status history |
 | `get_spending_insights` | `transactions:read` | no | Aggregates only |
-| `list_aml_alerts` | `aml:read` | masked | |
-| `get_aml_alert` | `aml:read` | masked | Includes triggering transactions |
+| `list_aml_alerts` | `aml:read` | masked | Soonest SLA first; signed cursor over `(sla_due_at, alert_id)` bound to the filters and the caller |
+| `get_aml_alert` | `aml:read` | masked | Rule thresholds, narrative and the triggering Transactions in the payments view (counterparties visible with `aml:read`; no device detail) |
 | `screen_entity` | `screening:run` | n/a | Behind vendor breaker; `status: deferred` when open |
 | `raise_dispute` | `disputes:write` | n/a | Idempotent, audited, emits outbox event |
 | `flag_transaction_for_review` | `reviews:write` | n/a | Idempotent, audited, emits outbox event |
